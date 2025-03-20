@@ -28,12 +28,13 @@ PLAYER_CAPACITY=`structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq
 echo "${PLAYER_CAPACITY}"
 structsd ${PARAMS_TX} tx structs allocation-create ${PLAYER_ID} ${PLAYER_CAPACITY} --allocation-type automated --from ${VALIDATOR_ACCOUNT_NAME}
 sleep $SLEEP
-ALLOCATION_ID=`structsd query structs allocation-all-by-source ${PLAYER_1_ID} --output json | jq -r .Allocation[0].id`
+
+ALLOCATION_ID=`structsd query structs allocation-all-by-source ${PLAYER_ID} --output json | jq -r .Allocation[0].id`
 
 # Create Substation 1
-structsd ${PARAMS_TX} tx structs substation-create ${PLAYER_1_ID} ${ALLOCATION_ID} --from ${VALIDATOR_ACCOUNT_NAME}
+structsd ${PARAMS_TX} tx structs substation-create ${PLAYER_ID} ${ALLOCATION_ID} --from ${VALIDATOR_ACCOUNT_NAME}
 sleep $SLEEP
-SUBSTATION_ID=`structsd ${PARAMS_QUERY} query structs allocation ${PLAYER_1_ID}-0 | jq -r ".Allocation.destinationId"`
+SUBSTATION_ID=`structsd ${PARAMS_QUERY} query structs allocation ${PLAYER_ID} | jq -r ".Allocation.destinationId"`
 
 # Create Guild
 structsd ${PARAMS_TX} tx structs guild-create "" ${SUBSTATION_ID} --from ${VALIDATOR_ACCOUNT_NAME}
