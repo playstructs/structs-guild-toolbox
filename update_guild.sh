@@ -11,7 +11,7 @@ echo "${PARAMS_KEYS}"
 
 
 # Ask for Validator Account Name
-echo "What is the name of the structsd account for your validator?:"
+echo "What is the name of the structsd account for your validator? (as in --from ______):"
 read -r VALIDATOR_ACCOUNT_NAME
 
 
