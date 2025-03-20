@@ -69,7 +69,7 @@ echo "${SUBSTATION_ID}"
 echo "Checking to see if Guild Already Exists"
 GUILD_ID=`structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r .Player.guildId`
 if [[ -z "${GUILD_ID}" ]] || [ "$GUILD_ID" == "null" ]; then
-  echo "Creating a new Giold"
+  echo "Creating a new Guild"
   # Create Guild
   structsd ${PARAMS_TX} tx structs guild-create "temp.endpoint.com" ${SUBSTATION_ID} --from ${VALIDATOR_ACCOUNT_NAME}
   sleep $SLEEP
