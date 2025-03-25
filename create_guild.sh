@@ -100,6 +100,9 @@ read -r GUILD_TAG
 echo "A URL to a Guild Logo:"
 read -r GUILD_LOGO
 
+echo "Primary domain for the Guild:"
+read -r GUILD_DOMAIN
+
 echo "A URL to a Guild Website:"
 read -r GUILD_WEBSITE
 
@@ -119,6 +122,7 @@ GUILD_JSON=$( jq -n \
                   --arg description "$GUILD_DESCRIPTION" \
                   --arg tag "$GUILD_TAG" \
                   --arg logo "$GUILD_LOGO" \
+                  --arg domain "$GUILD_DOMAIN" \
                   --arg website "$GUILD_WEBSITE" \
                   --arg bluesky "$GUILD_SOCIAL_BLUESKY" \
                   --arg facebook "$GUILD_SOCIAL_FACEBOOK" \
@@ -136,7 +140,7 @@ GUILD_JSON=$( jq -n \
                   --arg guildApi "$GUILD_SERVICE_GUILD_API" \
                   --arg reactorApi "$GUILD_SERVICE_REACTOR_API" \
                   --arg explorer "$GUILD_SERVIVCE_EXPLORER" \
-								'{ guild: { id: $id, name: $name, description: $description, tag: $tag, logo: $logo, website: $website, socials: { bluesky: $bluesky, facebook: $facebook, farcaster: $farcaster, instagram: $instagram, twitch: $twitch, x: $x, youtube: $youtube, discord_contact: $discordContact, discord_server: $discordServer, telegram_contact: $telegramContact, telegram_channel: $telegramChannel }, denom: {"6": $coin, "0": $smallestCoin }, services:{ guild_api: $guildApi, reactorApi: $reactorApi, explorer: $explorer  } } }' )
+								'{ guild: { id: $id, name: $name, description: $description, tag: $tag, logo: $logo, domain: $domain, website: $website, socials: { bluesky: $bluesky, facebook: $facebook, farcaster: $farcaster, instagram: $instagram, twitch: $twitch, x: $x, youtube: $youtube, discord_contact: $discordContact, discord_server: $discordServer, telegram_contact: $telegramContact, telegram_channel: $telegramChannel }, denom: {"6": $coin, "0": $smallestCoin }, services:{ guild_api: $guildApi, reactorApi: $reactorApi, explorer: $explorer  } } }' )
 
 echo $GUILD_JSON > guild.json.tmp
 UPLOAD_URL=$(curl --upload-file 'guild.json.tmp' 'https://paste.c-net.org/')
