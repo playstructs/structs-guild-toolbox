@@ -351,9 +351,9 @@ function view_permissions() {
     PERMISSION_COUNT=`echo ${PERMISSIONS} | jq length `
     for (( p=0; p<PERMISSION_COUNT; p++ ))
     do
-        PERMISSION_ID=$(echo "$PERMISSIONS" | jq -r '.[${p}].permissionId')
+        PERMISSION_ID=$(echo "$PERMISSIONS" | jq -r ".[${p}].permissionId")
         TARGET_PLAYER_ID=${PERMISSION_ID#*@}
-        PERMISSION_FLAGS=$(echo "$PERMISSIONS" | jq -r '.[${p}].value')
+        PERMISSION_FLAGS=$(echo "$PERMISSIONS" | jq -r ".[${p}].value")
         PERMISSION_READABLE=$(display_permissions $PERMISSION_FLAGS)
 
 
