@@ -33,20 +33,22 @@ function display_main_screen() {
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
     GUILD_DESCRIPTION=$(jq -r '.guild.description' "$GUILD_CONFIG_FILE")
     GUILD_TOKEN_DENOM=$(jq -r '.guild.denom["6"]' "$GUILD_CONFIG_FILE")
+    GUILD_TOKEN_DENOM_SMALL=$(jq -r '.guild.denom["0"]' "$GUILD_CONFIG_FILE")
 
     # Get reactor details
     REACTOR_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.primaryReactorId')
     REACTOR_JSON=$(structsd ${PARAMS_QUERY} query structs reactor ${REACTOR_ID})
-    REACTOR_LOAD=$(echo "$REACTOR_JSON" | jq -r '.Reactor.load')
-    REACTOR_CAPACITY=$(echo "$REACTOR_JSON" | jq -r '.Reactor.capacity')
+    REACTOR_FUEL=$(echo "$REACTOR_JSON" | jq -r '.gridAttributes.fuel')
+    REACTOR_LOAD=$(echo "$REACTOR_JSON" | jq -r '.gridAttributes.load')
+    REACTOR_CAPACITY=$(echo "$REACTOR_JSON" | jq -r '.gridAttributes.capacity')
 
     # Get entry substation details
     ENTRY_SUBSTATION_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.entrySubstationId')
     SUBSTATION_JSON=$(structsd ${PARAMS_QUERY} query structs substation ${ENTRY_SUBSTATION_ID})
-    SUBSTATION_LOAD=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.load')
-    SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.capacity')
-    SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.connectionCount')
-    SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.connectionCapacity')
+    SUBSTATION_LOAD=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.load')
+    SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity')
+    SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount')
+    SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity')
 
     # Get account balances
     UALPHA_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} ualpha | jq -r '.balance.amount')
@@ -60,6 +62,7 @@ function display_main_screen() {
 
     echo -e "${CYAN}=== REACTOR DETAILS ===${NC}"
     echo -e "${YELLOW}Reactor ID:${NC} ${REACTOR_ID}"
+    echo -e "${YELLOW}Fuel:${NC} ${REACTOR_FUEL}"
     echo -e "${YELLOW}Load/Capacity:${NC} ${REACTOR_LOAD}/${REACTOR_CAPACITY}"
     echo ""
 
@@ -73,7 +76,7 @@ function display_main_screen() {
     echo -e "${YELLOW}Account:${NC} ${STRUCTS_ACCOUNT}"
     echo -e "${YELLOW}Player ID:${NC} ${PLAYER_ID}"
     echo -e "${YELLOW}Alpha Balance:${NC} ${UALPHA_BALANCE} ualpha"
-    echo -e "${YELLOW}Token Balance:${NC} ${TOKEN_BALANCE} u${GUILD_TOKEN_DENOM}"
+    echo -e "${YELLOW}Token Balance:${NC} ${TOKEN_BALANCE} ${GUILD_TOKEN_DENOM_SMALL} (uguild.${GUILD_ID}) "
     echo ""
 
     echo -e "${CYAN}=== MENU OPTIONS ===${NC}"
