@@ -348,15 +348,17 @@ function view_permissions() {
     echo -e "${YELLOW}Player ID | Permission Type | Permission${NC}"
     echo -e "-------------------------------------------"
 
-    while read -r PERMISSION; do
-        PERMISSION_ID=$(echo "$PERMISSION" | jq -r '.permissionId')
+    PERMISSION_COUNT=`echo ${PERMISSIONS} | jq length `
+    for (( p=0; p<PERMISSION_COUNT; p++ ))
+    do
+        PERMISSION_ID=$(echo "$PERMISSIONS" | jq -r '.[${p}].permissionId')
         TARGET_PLAYER_ID=${PERMISSION_ID#*@}
-        PERMISSION_FLAGS=$(echo "$PERMISSION" | jq -r '.value')
+        PERMISSION_FLAGS=$(echo "$PERMISSIONS" | jq -r '.[${p}].value')
         PERMISSION_READABLE=$(display_permissions $PERMISSION_FLAGS)
 
 
         echo -e "${TARGET_PLAYER_ID} | ${PERMISSION_READABLE} | ${PERMISSION_FLAGS}"
-    done <<< "$(echo "$PERMISSIONS" | jq -s '.[]')"
+    done
 
     echo ""
     press_enter_to_continue
