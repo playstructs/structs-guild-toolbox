@@ -35,7 +35,7 @@ function display_main_screen() {
     GUILD_TOKEN_DENOM=$(jq -r '.guild.denom["6"]' "$GUILD_CONFIG_FILE")
 
     # Get reactor details
-    REACTOR_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.reactorId')
+    REACTOR_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.primaryReactorId')
     REACTOR_JSON=$(structsd ${PARAMS_QUERY} query structs reactor ${REACTOR_ID})
     REACTOR_LOAD=$(echo "$REACTOR_JSON" | jq -r '.Reactor.load')
     REACTOR_CAPACITY=$(echo "$REACTOR_JSON" | jq -r '.Reactor.capacity')
@@ -49,8 +49,8 @@ function display_main_screen() {
     SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.connectionCapacity')
 
     # Get account balances
-    UALPHA_BALANCE=$(structsd query bank balance ${PLAYER_ADDRESS} ualpha -o json | jq -r '.amount')
-    TOKEN_BALANCE=$(structsd query bank balance ${PLAYER_ADDRESS} "uguild.${GUILD_ID}" -o json | jq -r '.amount')
+    UALPHA_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} ualpha | jq -r '.balance.amount')
+    TOKEN_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} "uguild.${GUILD_ID}" | jq -r '.balance.amount')
 
     echo -e "${CYAN}=== GUILD DETAILS ===${NC}"
     echo -e "${YELLOW}Guild ID:${NC} ${GUILD_ID}"
