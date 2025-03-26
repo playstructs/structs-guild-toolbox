@@ -49,8 +49,8 @@ function display_main_screen() {
     SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.connectionCapacity')
 
     # Get account balances
-    UALPHA_BALANCE=$(structsd query bank balances ${PLAYER_ADDRESS} --denom ualpha -o json | jq -r '.amount')
-    TOKEN_BALANCE=$(structsd query bank balances ${PLAYER_ADDRESS} --denom "u${GUILD_TOKEN_DENOM}" -o json | jq -r '.amount')
+    UALPHA_BALANCE=$(structsd query bank balance ${PLAYER_ADDRESS} ualpha -o json | jq -r '.amount')
+    TOKEN_BALANCE=$(structsd query bank balance ${PLAYER_ADDRESS} "uguild.${GUILD_ID}" -o json | jq -r '.amount')
 
     echo -e "${CYAN}=== GUILD DETAILS ===${NC}"
     echo -e "${YELLOW}Guild ID:${NC} ${GUILD_ID}"
