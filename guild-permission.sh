@@ -316,7 +316,7 @@ function view_permissions() {
     echo -e "${CYAN}=== VIEW PERMISSIONS ===${NC}"
     echo ""
 
-    read -p "Enter Object ID to view permission on: " TARGET_OJBECT_ID
+    read -p "Enter Object ID to view permission on: " TARGET_OBJECT_ID
 
     if [[ -z "$TARGET_OBJECT_ID" ]]; then
         echo -e "${RED}Object ID cannot be empty.${NC}"
@@ -326,7 +326,7 @@ function view_permissions() {
     fi
 
     # Get all permissions for the guild
-    PERMISSIONS_JSON=$(structsd ${PARAMS_QUERY} query structs permission-by-object ${TARGET_OJBECT_ID})
+    PERMISSIONS_JSON=$(structsd ${PARAMS_QUERY} query structs permission-by-object ${TARGET_OBJECT_ID})
     PERMISSIONS=$(echo "$PERMISSIONS_JSON" | jq -r '.permissionRecords' 2>/dev/null)
 
     if [[ -z "$PERMISSIONS" || "$PERMISSIONS" == "null" ]]; then
@@ -337,7 +337,7 @@ function view_permissions() {
     fi
 
 
-    echo -e "${CYAN}Current Permissions:${NC}"
+    echo -e "${CYAN}Current Permissions: ${TARGET_OBJECT_ID} ${NC}"
     echo ""
     echo -e "${YELLOW}Player ID | Permission Type | Permission${NC}"
     echo -e "-------------------------------------------"
