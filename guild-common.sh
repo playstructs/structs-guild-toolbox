@@ -42,6 +42,19 @@ function display_main_screen() {
     REACTOR_LOAD=$(echo "$REACTOR_JSON" | jq -r '.gridAttributes.load')
     REACTOR_CAPACITY=$(echo "$REACTOR_JSON" | jq -r '.gridAttributes.capacity')
 
+    #Check if values are null and set defaults
+    if [[ -z "$REACTOR_FUEL" || "$REACTOR_FUEL" == "null" ]]; then
+        REACTOR_FUEL=0
+    fi
+        
+    if [[ -z "$REACTOR_LOAD" || "$REACTOR_LOAD" == "null" ]]; then
+        REACTOR_LOAD=0
+    fi
+    
+    if [[ -z "$REACTOR_CAPACITY" || "$REACTOR_CAPACITY" == "null" ]]; then
+        REACTOR_CAPACITY=0
+    fi
+
     # Get entry substation details
     ENTRY_SUBSTATION_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.entrySubstationId')
     SUBSTATION_JSON=$(structsd ${PARAMS_QUERY} query structs substation ${ENTRY_SUBSTATION_ID})
@@ -49,6 +62,23 @@ function display_main_screen() {
     SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity')
     SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount')
     SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity')
+
+    #Check if values are null and set defaults
+    if [[ -z "$SUBSTATION_LOAD" || "$SUBSTATION_LOAD" == "null" ]]; then
+        SUBSTATION_LOAD=0
+    fi
+    
+    if [[ -z "$SUBSTATION_CAPACITY" || "$SUBSTATION_CAPACITY" == "null" ]]; then
+        SUBSTATION_CAPACITY=0
+    fi
+    
+    if [[ -z "$SUBSTATION_CONNECTION_COUNT" || "$SUBSTATION_CONNECTION_COUNT" == "null" ]]; then
+        SUBSTATION_CONNECTION_COUNT=0
+    fi
+    
+    if [[ -z "$SUBSTATION_CONNECTION_CAPACITY" || "$SUBSTATION_CONNECTION_CAPACITY" == "null" ]]; then
+        SUBSTATION_CONNECTION_CAPACITY=0
+    fi
 
     # Get account balances
     UALPHA_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} ualpha | jq -r '.balance.amount')
@@ -75,8 +105,8 @@ function display_main_screen() {
     echo -e "${CYAN}=== ACCOUNT DETAILS ===${NC}"
     echo -e "${YELLOW}Account:${NC} ${STRUCTS_ACCOUNT}"
     echo -e "${YELLOW}Player ID:${NC} ${PLAYER_ID}"
-    echo -e "${YELLOW}Alpha Balance:${NC} ${UALPHA_BALANCE} ualpha"
-    echo -e "${YELLOW}Token Balance:${NC} ${TOKEN_BALANCE} ${GUILD_TOKEN_DENOM_SMALL} (uguild.${GUILD_ID}) "
+    echo -e "${YELLOW}Alpha Balance:${NC} ${UALPHA_BALANCE}ualpha"
+    echo -e "${YELLOW}Token Balance:${NC} ${TOKEN_BALANCE}${GUILD_TOKEN_DENOM_SMALL} (uguild.${GUILD_ID}) "
     echo ""
 
     echo -e "${CYAN}=== MENU OPTIONS ===${NC}"
