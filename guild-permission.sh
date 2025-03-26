@@ -100,28 +100,34 @@ function select_permissions() {
     # Return the numeric value directly
     echo "$current_permissions"
 }
-
 function display_permissions() {
-    local permission_value=$1
+    local permission_value="$1"
     local permission_string=""
     local first=true
 
-    if [ $permission_value -eq 0 ]; then
+    # Make sure we have a valid number
+    if [[ ! "$permission_value" =~ ^[0-9]+$ ]]; then
+        echo "Unknown"
+        return
+    fi
+
+    if [ "$permission_value" -eq 0 ]; then
         echo "None (Permissionless)"
         return
     fi
 
-    if [ $permission_value -eq 127 ]; then
+    if [ "$permission_value" -eq 127 ]; then
         echo "All Permissions"
         return
     fi
 
-    if (( $permission_value & 1 )); then
+    # Check each bit flag
+    if (( (permission_value & 1) != 0 )); then
         permission_string="Play"
         first=false
     fi
 
-    if (( $permission_value & 2 )); then
+    if (( (permission_value & 2) != 0 )); then
         if [ "$first" = true ]; then
             permission_string="Update"
             first=false
@@ -130,7 +136,7 @@ function display_permissions() {
         fi
     fi
 
-    if (( $permission_value & 4 )); then
+    if (( (permission_value & 4) != 0 )); then
         if [ "$first" = true ]; then
             permission_string="Delete"
             first=false
@@ -139,16 +145,16 @@ function display_permissions() {
         fi
     fi
 
-    if (( $permission_value & 8 )); then
+    if (( (permission_value & 8) != 0 )); then
         if [ "$first" = true ]; then
             permission_string="Assets"
             first=false
         else
-            permis sion_string="${permission_string}, Assets"
+            permission_string="${permission_string}, Assets"
         fi
     fi
 
-    if (( $permission_value & 16 )); then
+    if (( (permission_value & 16) != 0 )); then
         if [ "$first" = true ]; then
             permission_string="Associations"
             first=false
@@ -157,7 +163,7 @@ function display_permissions() {
         fi
     fi
 
-    if (( $permission_value & 32 )); then
+    if (( (permission_value & 32) != 0 )); then
         if [ "$first" = true ]; then
             permission_string="Grid"
             first=false
@@ -166,7 +172,7 @@ function display_permissions() {
         fi
     fi
 
-    if (( $permission_value & 64 )); then
+    if (( (permission_value & 64) != 0 )); then
         if [ "$first" = true ]; then
             permission_string="Permissions"
             first=false
