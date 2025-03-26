@@ -71,65 +71,26 @@ function check_existing_guild() {
     PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
     PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
 
-    # Check if player has a guild
-    GUILDS_JSON=$(structsd ${PARAMS_QUERY} query structs guild-all | jq -r '.Guild[]')
-
-    if [ -z "$GUILDS_JSON" ]; then
+    GUILD_ID=$(structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r .Player.guildId)
+    if [[ -z "${GUILD_ID}" ]] || [ "$GUILD_ID" == "null" ]; then
         echo -e "${YELLOW}No guilds found. Starting guild setup process...${NC}"
         setup_guild
         return
     fi
 
-    # Find guilds owned by the player
-    OWNED_GUILDS=()
+    # Check if the guild actually exists
+    # It really should by this point
+    GUILD_JSON=$(structsd ${PARAMS_QUERY} query structs guild ${GUILD_ID} | jq -r '.Guild')
 
-    while read -r GUILD; do
-        GUILD_ID=$(echo "$GUILD" | jq -r '.id')
-        GUILD_OWNER_ID=$(echo "$GUILD" | jq -r '.ownerId')
-
-        if [ "$GUILD_OWNER_ID" == "$PLAYER_ID" ]; then
-            OWNED_GUILDS+=("$GUILD")
-        fi
-    done <<< "$(echo "$GUILDS_JSON" | jq -s '.[]')"
-
-    if [ ${#OWNED_GUILDS[@]} -eq 0 ]; then
-        echo -e "${YELLOW}No guilds owned by this player. Starting guild setup process...${NC}"
+    if [ -z "$GUILD_JSON" ]; then
+        echo -e "${YELLOW}No guilds found. Starting guild setup process...${NC}"
         setup_guild
         return
     fi
 
-    echo -e "${GREEN}Found ${#OWNED_GUILDS[@]} guild(s) owned by this player.${NC}"
-    echo ""
+    echo -e "${GREEN}Using guild ID: ${GUILD_ID}${NC}"
+    setup_guild_metadata
 
-    if [ ${#OWNED_GUILDS[@]} -eq 1 ]; then
-        # Only one guild, use it
-        GUILD_ID=$(echo "${OWNED_GUILDS[0]}" | jq -r '.id')
-        echo -e "${GREEN}Using guild ID: ${GUILD_ID}${NC}"
-        setup_guild_metadata
-    else
-        # Multiple guilds, let user choose
-        echo "Select a guild:"
-        echo ""
-
-        for ((i=0; i<${#OWNED_GUILDS[@]}; i++)); do
-            GUILD_ID=$(echo "${OWNED_GUILDS[$i]}" | jq -r '.id')
-            echo -e "${GREEN}$((i+1)).${NC} Guild ID: ${GUILD_ID}"
-        done
-
-        echo ""
-        read -p "Select a guild (1-${#OWNED_GUILDS[@]}): " GUILD_OPTION
-
-        if ! [[ "$GUILD_OPTION" =~ ^[0-9]+$ ]] || [ "$GUILD_OPTION" -lt 1 ] || [ "$GUILD_OPTION" -gt "${#OWNED_GUILDS[@]}" ]; then
-            echo -e "${RED}Invalid option. Please try again.${NC}"
-            press_enter_to_continue
-            check_existing_guild
-            return
-        fi
-
-        GUILD_ID=$(echo "${OWNED_GUILDS[$(($GUILD_OPTION-1))]}" | jq -r '.id')
-        echo -e "${GREEN}Selected guild ID: ${GUILD_ID}${NC}"
-        setup_guild_metadata
-    fi
 }
 
 function setup_guild() {
