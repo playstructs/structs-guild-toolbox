@@ -349,7 +349,7 @@ function view_permissions() {
     COLUMN_1="Player ID"
     COLUMN_2="Permission Type"
     COLUMN_3="Flags"
-    printf "%10s | %30s | %10s \n" COLUMN_1 COLUMN_2 COLUMN_3
+    printf "%15s | %30s | %10s \n" ${COLUMN_1} ${COLUMN_2} ${COLUMN_3}
     echo -e "--------------------------------------------------------"
 
     PERMISSION_COUNT=`echo ${PERMISSIONS} | jq length `
@@ -360,7 +360,7 @@ function view_permissions() {
         PERMISSION_FLAGS=$(echo "$PERMISSIONS" | jq -r ".[${p}].value")
         PERMISSION_READABLE=$(display_permissions $PERMISSION_FLAGS)
 
-        printf "%10s | %30s | %10s \n" TARGET_PLAYER_ID PERMISSION_READABLE PERMISSION_FLAGS
+        printf "%15s | %30s | %10s \n" ${TARGET_PLAYER_ID} ${PERMISSION_READABLE} ${PERMISSION_FLAGS}
     done
 
     echo ""
