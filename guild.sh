@@ -31,7 +31,7 @@ source "guild-energy-grid.sh"
 source "guild-central-bank.sh"
 source "guild-membership.sh"
 source "guild-guild-config.sh"
-source "guild-permissions.sh"
+source "guild-permission.sh"
 
 # Initialize the tool
 function initialize() {
