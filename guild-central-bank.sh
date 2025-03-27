@@ -8,8 +8,8 @@ function central_bank_menu() {
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
 
     # Get player address and ID
-    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
-    PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
+    #PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    #PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
 
     # Get token details
 
@@ -80,7 +80,7 @@ function mint_tokens() {
     echo ""
 
     # Get account balances
-    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    #PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
     UALPHA_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} ualpha | jq -r '.balance.amount')
 
     echo -e "${YELLOW}Available Alpha Balance:${NC} ${UALPHA_BALANCE} ualpha"
@@ -140,7 +140,7 @@ function transfer_tokens() {
     echo ""
 
     # Get account balances
-    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    #PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
     ACCOUNT_BALANCES=$(structsd ${PARAMS_QUERY} query bank balances ${PLAYER_ADDRESS})
     UTOKEN_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} "uguild.${GUILD_ID}" | jq -r '.balance.amount')
 
@@ -211,7 +211,7 @@ function redeem_tokens() {
     TOKEN_SUPPLY=$(structsd ${PARAMS_QUERY} query bank total-supply-of "uguild.${GUILD_ID}" | jq -r .amount.amount )
 
     # Get account balances
-    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    #PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
     UALPHA_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} ualpha | jq -r '.balance.amount')
     UTOKEN_BALANCE=$(structsd ${PARAMS_QUERY} query bank balance ${PLAYER_ADDRESS} "uguild.${GUILD_ID}" | jq -r '.balance.amount')
 

@@ -4,6 +4,10 @@ function load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         STRUCTS_ACCOUNT=$(jq -r '.account_name' "$CONFIG_FILE")
         echo -e "${GREEN}Loaded configuration for account: ${STRUCTS_ACCOUNT}${NC}"
+
+        PLAYER_ADDRESS=$(jq -r '.account_address' "$CONFIG_FILE")
+        PLAYER_ID=$(jq -r '.account_player_id' "$CONFIG_FILE")
+
     else
         setup_config
     fi
@@ -45,9 +49,12 @@ function setup_config() {
     STRUCTS_ACCOUNT=$(echo "$ACCOUNTS_JSON" | jq -r ".[$(($ACCOUNT_OPTION-1))].name")
     echo -e "${GREEN}Selected account: ${STRUCTS_ACCOUNT_ADDRESS}${NC}"
 
+    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
+
     # Save configuration
     mkdir -p "$CONFIG_DIR"
-    echo "{\"account_name\": \"$STRUCTS_ACCOUNT\"}" > "$CONFIG_FILE"
+    echo "{\"account_name\": \"$STRUCTS_ACCOUNT\",\"account_address\": \"$PLAYER_ADDRESS\",\"account_player_id\": \"$PLAYER_ID\"}" > "$CONFIG_FILE"
     echo -e "${GREEN}Configuration saved.${NC}"
 
     press_enter_to_continue

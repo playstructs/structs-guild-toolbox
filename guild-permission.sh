@@ -10,8 +10,8 @@ function permissions_menu() {
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
 
     # Get player address and ID
-    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
-    PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
+    # PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    # PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
 
     echo -e "${CYAN}=== PERMISSIONS MANAGEMENT ===${NC}"
     echo -e "${YELLOW}Guild:${NC} ${GUILD_NAME} (${GUILD_ID})"
@@ -233,7 +233,6 @@ function grant_permission() {
     print_header
     echo -e "${CYAN}=== GRANT PERMISSION ===${NC}"
     echo ""
-
 
     read -p "Enter Object ID to grant permission on: " TARGET_OBJECT_ID
 

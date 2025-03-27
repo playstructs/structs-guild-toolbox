@@ -25,8 +25,8 @@ function display_main_screen() {
     print_header
 
     # Get player address and ID
-    PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
-    PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
+    # PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
+    # PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
 
     # Get guild details
     GUILD_JSON=$(structsd ${PARAMS_QUERY} query structs guild ${GUILD_ID})
