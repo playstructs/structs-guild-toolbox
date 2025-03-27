@@ -350,7 +350,7 @@ function view_permissions() {
     COLUMN_2="Permission Type"
     COLUMN_3="Flags"
     printf "%15s | %30s | %10s \n" "${COLUMN_1}" "${COLUMN_2}" "${COLUMN_3}"
-    echo -e "--------------------------------------------------------"
+    echo -e "-------------------------------------------------------------"
 
     PERMISSION_COUNT=`echo ${PERMISSIONS} | jq length `
     for (( p=0; p<PERMISSION_COUNT; p++ ))
