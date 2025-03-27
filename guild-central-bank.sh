@@ -126,7 +126,7 @@ function mint_tokens() {
     fi
 
     echo -e "${YELLOW}Minting tokens...${NC}"
-    structsd ${PARAMS_TX} tx structs guild-bank-mint ${GUILD_ID} ${ALPHA_AMOUNT} ${TOKEN_AMOUNT} --from ${STRUCTS_ACCOUNT}
+    structsd ${PARAMS_TX} tx structs guild-bank-mint ${ALPHA_AMOUNT} ${TOKEN_AMOUNT} --from ${STRUCTS_ACCOUNT}
     sleep $SLEEP_TIME
 
     echo -e "${GREEN}Tokens minted successfully!${NC}"
