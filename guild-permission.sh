@@ -42,52 +42,64 @@ function permissions_menu() {
 
 function select_permissions() {
     local current_permissions=0
+    local done=false
 
-    echo "Select permissions (enter numbers, separated by spaces):"
-    echo "1 - Play"
-    echo "2 - Update"
-    echo "4 - Delete"
-    echo "8 - Assets"
-    echo "16 - Associations"
-    echo "32 - Grid"
-    echo "64 - Permissions"
-    echo "127 - All permissions"
-    echo "0 - None (Permissionless)"
-    echo ""
+    while [ "$done" = false ]; do
+        clear
+        echo "=== SELECT PERMISSIONS ==="
+        echo ""
 
-    read -p "Enter permission values (e.g., '1 2 8' for Play, Update, and Assets): " perm_input
-
-    # Process input
-    for val in $perm_input; do
-        if [[ "$val" =~ ^[0-9]+$ ]]; then
-            current_permissions=$((current_permissions | val))
+        # Display current selection
+        echo "Current selection:"
+        if [ "$current_permissions" -eq 0 ]; then
+            echo "  None (Permissionless)"
+        else
+            if (( (current_permissions & 1) != 0 )); then echo "  [X] Play"; else echo "  [ ] Play"; fi
+            if (( (current_permissions & 2) != 0 )); then echo "  [X] Update"; else echo "  [ ] Update"; fi
+            if (( (current_permissions & 4) != 0 )); then echo "  [X] Delete"; else echo "  [ ] Delete"; fi
+            if (( (current_permissions & 8) != 0 )); then echo "  [X] Assets"; else echo "  [ ] Assets"; fi
+            if (( (current_permissions & 16) != 0 )); then echo "  [X] Associations"; else echo "  [ ] Associations"; fi
+            if (( (current_permissions & 32) != 0 )); then echo "  [X] Grid"; else echo "  [ ] Grid"; fi
+            if (( (current_permissions & 64) != 0 )); then echo "  [X] Permissions"; else echo "  [ ] Permissions"; fi
         fi
+        echo ""
+
+        echo "Toggle options:"
+        echo "1. Play"
+        echo "2. Update"
+        echo "3. Delete"
+        echo "4. Assets"
+        echo "5. Associations"
+        echo "6. Grid"
+        echo "7. Permissions"
+        echo "8. All (select all)"
+        echo "9. None (clear all)"
+        echo "0. Done"
+        echo ""
+
+        read -p "Select an option: " PERM_OPTION
+        echo ""
+
+        case $PERM_OPTION in
+            1) current_permissions=$((current_permissions ^ 1)) ;;
+            2) current_permissions=$((current_permissions ^ 2)) ;;
+            3) current_permissions=$((current_permissions ^ 4)) ;;
+            4) current_permissions=$((current_permissions ^ 8)) ;;
+            5) current_permissions=$((current_permissions ^ 16)) ;;
+            6) current_permissions=$((current_permissions ^ 32)) ;;
+            7) current_permissions=$((current_permissions ^ 64)) ;;
+            8) current_permissions=127 ;;
+            9) current_permissions=0 ;;
+            0) done=true ;;
+            *)
+                echo "Invalid option. Please try again."
+                sleep 2
+                ;;
+        esac
     done
 
-    # Show selected permissions
-    echo ""
-    echo "Selected permissions:"
-    if [ "$current_permissions" -eq 0 ]; then
-        echo "None (Permissionless)"
-    elif [ "$current_permissions" -eq 127 ]; then
-        echo "All Permissions"
-    else
-        if (( (current_permissions & 1) != 0 )); then echo "- Play"; fi
-        if (( (current_permissions & 2) != 0 )); then echo "- Update"; fi
-        if (( (current_permissions & 4) != 0 )); then echo "- Delete"; fi
-        if (( (current_permissions & 8) != 0 )); then echo "- Assets"; fi
-        if (( (current_permissions & 16) != 0 )); then echo "- Associations"; fi
-        if (( (current_permissions & 32) != 0 )); then echo "- Grid"; fi
-        if (( (current_permissions & 64) != 0 )); then echo "- Permissions"; fi
-    fi
-    echo ""
-
-    read -p "Is this correct? (y/n): " confirm
-    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        echo "$current_permissions"
-    else
-        select_permissions
-    fi
+    # Return the numeric value directly
+    echo "$current_permissions"
 }
 
 function display_permissions() {
