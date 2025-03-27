@@ -282,7 +282,7 @@ function revoke_permission() {
     echo ""
 
 
-    read -p "Enter Object ID to revoke permission on: " TARGET_OJBECT_ID
+    read -p "Enter Object ID to revoke permission on: " TARGET_OBJECT_ID
 
     if [[ -z "$TARGET_OBJECT_ID" ]]; then
         echo -e "${RED}Object ID cannot be empty.${NC}"
