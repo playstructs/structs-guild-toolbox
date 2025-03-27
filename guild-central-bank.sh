@@ -14,7 +14,7 @@ function central_bank_menu() {
     # Get token details
 
     # Collateral Address
-    COLLATERAL_ADDRESS=$(structsd ${PARAMS_QUERY} query structs guild-bank-collateral-address ${GUILD_ID} | jq -r .internalAddressAssociation.address )
+    COLLATERAL_ADDRESS=$(structsd ${PARAMS_QUERY} query structs guild-bank-collateral-address ${GUILD_ID} | jq -r .internalAddressAssociation[0].address )
 
     # Collateral Balance
     ALPHA_COLLATERAL=$(structsd ${PARAMS_QUERY} query bank balance ${COLLATERAL_ADDRESS} "ualpha" | jq -r .balance.amount )
@@ -202,7 +202,7 @@ function redeem_tokens() {
 
 
     # Collateral Address
-    COLLATERAL_ADDRESS=$(structsd ${PARAMS_QUERY} query structs guild-bank-collateral-address ${GUILD_ID} | jq -r .internalAddressAssociation.address )
+    COLLATERAL_ADDRESS=$(structsd ${PARAMS_QUERY} query structs guild-bank-collateral-address ${GUILD_ID} | jq -r .internalAddressAssociation[0].address )
 
     # Collateral Balance
     ALPHA_COLLATERAL=$(structsd ${PARAMS_QUERY} query bank balance ${COLLATERAL_ADDRESS} "ualpha" | jq -r .balance.amount )
