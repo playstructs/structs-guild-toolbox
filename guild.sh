@@ -12,6 +12,8 @@ PARAMS_TX=" --gas auto --yes=true "
 PARAMS_QUERY=" --output json "
 PARAMS_KEYS=" --output json "
 
+PERMISSION_FLAGS=0
+
 # Colors for better UI
 RED='\033[0;31m'
 GREEN='\033[0;32m'

@@ -183,7 +183,7 @@ function display_permissions() {
         fi
     fi
 
-    echo "$permission_string"
+    PERMISSION_FLAGS="${permission_string}"
 }
 
 function proxy_join() {
@@ -261,7 +261,8 @@ function grant_permission() {
     fi
 
     echo -e "${YELLOW}Now select the specific permissions to grant:${NC}"
-    PERMISSION_FLAGS=$(select_permissions)
+    #Sets PERMISSION_FLAGS
+    select_permissions
     PERMISSION_READABLE=$(display_permissions $PERMISSION_FLAGS)
 
     echo -e "${YELLOW}Granting ${PERMISSION_READABLE} (${PERMISSION_FLAGS}) permission to player ${TARGET_PLAYER_ID} on ${TARGET_OBJECT_ID}...${NC}"
@@ -307,7 +308,10 @@ function revoke_permission() {
     fi
 
     echo -e "${YELLOW}Now select the specific permissions to revoke:${NC}"
-    PERMISSION_FLAGS=$(select_permissions)
+
+    # Sets PERMISSION_FLAGS
+    select_permissions
+
     PERMISSION_READABLE=$(display_permissions $PERMISSION_FLAGS)
 
     echo -e "${YELLOW}Revoking ${PERMISSION_READABLE} (${PERMISSION_FLAGS}) permission from player ${TARGET_PLAYER_ID} on ${TARGET_OBJECT_ID}...${NC}"
