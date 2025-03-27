@@ -51,16 +51,16 @@ function select_permissions() {
 
         # Display current selection
         echo -e "${YELLOW}Current selection:${NC}"
-        if [ $current_permissions -eq 0 ]; then
+        if [ "$current_permissions" -eq 0 ]; then
             echo -e "  ${RED}None (Permissionless)${NC}"
         else
-            if (( $current_permissions & 1 )); then echo -e "  ${GREEN}✓${NC} Play"; else echo -e "  ${RED}✗${NC} Play"; fi
-            if (( $current_permissions & 2 )); then echo -e "  ${GREEN}✓${NC} Update"; else echo -e "  ${RED}✗${NC} Update"; fi
-            if (( $current_permissions & 4 )); then echo -e "  ${GREEN}✓${NC} Delete"; else echo -e "  ${RED}✗${NC} Delete"; fi
-            if (( $current_permissions & 8 )); then echo -e "  ${GREEN}✓${NC} Assets"; else echo -e "  ${RED}✗${NC} Assets"; fi
-            if (( $current_permissions & 16 )); then echo -e "  ${GREEN}✓${NC} Associations"; else echo -e "  ${RED}✗${NC} Associations"; fi
-            if (( $current_permissions & 32 )); then echo -e "  ${GREEN}✓${NC} Grid"; else echo -e "  ${RED}✗${NC} Grid"; fi
-            if (( $current_permissions & 64 )); then echo -e "  ${GREEN}✓${NC} Permissions"; else echo -e "  ${RED}✗${NC} Permissions"; fi
+            if (( (current_permissions & 1) != 0 )); then echo -e "  ${GREEN}✓${NC} Play"; else echo -e "  ${RED}✗${NC} Play"; fi
+            if (( (current_permissions & 2) != 0 )); then echo -e "  ${GREEN}✓${NC} Update"; else echo -e "  ${RED}✗${NC} Update"; fi
+            if (( (current_permissions & 4) != 0 )); then echo -e "  ${GREEN}✓${NC} Delete"; else echo -e "  ${RED}✗${NC} Delete"; fi
+            if (( (current_permissions & 8) != 0 )); then echo -e "  ${GREEN}✓${NC} Assets"; else echo -e "  ${RED}✗${NC} Assets"; fi
+            if (( (current_permissions & 16) != 0 )); then echo -e "  ${GREEN}✓${NC} Associations"; else echo -e "  ${RED}✗${NC} Associations"; fi
+            if (( (current_permissions & 32) != 0 )); then echo -e "  ${GREEN}✓${NC} Grid"; else echo -e "  ${RED}✗${NC} Grid"; fi
+            if (( (current_permissions & 64) != 0 )); then echo -e "  ${GREEN}✓${NC} Permissions"; else echo -e "  ${RED}✗${NC} Permissions"; fi
         fi
         echo ""
 
@@ -100,6 +100,7 @@ function select_permissions() {
     # Return the numeric value directly
     echo "$current_permissions"
 }
+
 function display_permissions() {
     local permission_value="$1"
     local permission_string=""
