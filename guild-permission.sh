@@ -101,7 +101,7 @@ function select_permissions() {
     done
 
     # Return the numeric value directly
-    echo "$current_permissions"
+    PERMISSION_FLAGS="${current_permissions}"
 }
 
 function display_permissions() {
@@ -185,7 +185,7 @@ function display_permissions() {
         fi
     fi
 
-    PERMISSION_FLAGS="${permission_string}"
+    echo "$permission_string"
 }
 
 function proxy_join() {
