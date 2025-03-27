@@ -6,7 +6,6 @@ function permissions_menu() {
     print_header
 
     # Get guild details
-    GUILD_JSON=$(structsd ${PARAMS_QUERY} query structs guild ${GUILD_ID})
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
 
     # Get player address and ID
