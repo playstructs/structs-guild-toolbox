@@ -45,54 +45,55 @@ function select_permissions() {
     local done=false
 
     while [ "$done" = false ]; do
-        print_header
-        echo -e "${CYAN}=== SELECT PERMISSIONS ===${NC}"
+        clear
+        echo "=== SELECT PERMISSIONS ==="
         echo ""
 
         # Display current selection
-        echo -e "${YELLOW}Current selection:${NC}"
+        echo "Current selection:"
         if [ "$current_permissions" -eq 0 ]; then
-            echo -e "  ${RED}None (Permissionless)${NC}"
+            echo "  None (Permissionless)"
         else
-            if (( (current_permissions & 1) != 0 )); then echo -e "  ${GREEN}✓${NC} Play"; else echo -e "  ${RED}✗${NC} Play"; fi
-            if (( (current_permissions & 2) != 0 )); then echo -e "  ${GREEN}✓${NC} Update"; else echo -e "  ${RED}✗${NC} Update"; fi
-            if (( (current_permissions & 4) != 0 )); then echo -e "  ${GREEN}✓${NC} Delete"; else echo -e "  ${RED}✗${NC} Delete"; fi
-            if (( (current_permissions & 8) != 0 )); then echo -e "  ${GREEN}✓${NC} Assets"; else echo -e "  ${RED}✗${NC} Assets"; fi
-            if (( (current_permissions & 16) != 0 )); then echo -e "  ${GREEN}✓${NC} Associations"; else echo -e "  ${RED}✗${NC} Associations"; fi
-            if (( (current_permissions & 32) != 0 )); then echo -e "  ${GREEN}✓${NC} Grid"; else echo -e "  ${RED}✗${NC} Grid"; fi
-            if (( (current_permissions & 64) != 0 )); then echo -e "  ${GREEN}✓${NC} Permissions"; else echo -e "  ${RED}✗${NC} Permissions"; fi
+            if (( (current_permissions & 1) != 0 )); then echo "  [X] Play"; else echo "  [ ] Play"; fi
+            if (( (current_permissions & 2) != 0 )); then echo "  [X] Update"; else echo "  [ ] Update"; fi
+            if (( (current_permissions & 4) != 0 )); then echo "  [X] Delete"; else echo "  [ ] Delete"; fi
+            if (( (current_permissions & 8) != 0 )); then echo "  [X] Assets"; else echo "  [ ] Assets"; fi
+            if (( (current_permissions & 16) != 0 )); then echo "  [X] Associations"; else echo "  [ ] Associations"; fi
+            if (( (current_permissions & 32) != 0 )); then echo "  [X] Grid"; else echo "  [ ] Grid"; fi
+            if (( (current_permissions & 64) != 0 )); then echo "  [X] Permissions"; else echo "  [ ] Permissions"; fi
         fi
         echo ""
 
-        echo -e "${CYAN}Toggle options:${NC}"
-        echo -e "${GREEN}1.${NC} Play"
-        echo -e "${GREEN}2.${NC} Update"
-        echo -e "${GREEN}3.${NC} Delete"
-        echo -e "${GREEN}4.${NC} Assets"
-        echo -e "${GREEN}5.${NC} Associations"
-        echo -e "${GREEN}6.${NC} Grid"
-        echo -e "${GREEN}7.${NC} Permissions"
-        echo -e "${GREEN}8.${NC} All (select all)"
-        echo -e "${GREEN}9.${NC} None (clear all)"
-        echo -e "${GREEN}0.${NC} Done"
+        echo "Toggle options:"
+        echo "1. Play"
+        echo "2. Update"
+        echo "3. Delete"
+        echo "4. Assets"
+        echo "5. Associations"
+        echo "6. Grid"
+        echo "7. Permissions"
+        echo "8. All (select all)"
+        echo "9. None (clear all)"
+        echo "0. Done"
         echo ""
 
         read -p "Select an option: " PERM_OPTION
+        echo ""
 
         case $PERM_OPTION in
-            1) current_permissions=$((current_permissions ^ 1)) ;; # Toggle Play
-            2) current_permissions=$((current_permissions ^ 2)) ;; # Toggle Update
-            3) current_permissions=$((current_permissions ^ 4)) ;; # Toggle Delete
-            4) current_permissions=$((current_permissions ^ 8)) ;; # Toggle Assets
-            5) current_permissions=$((current_permissions ^ 16)) ;; # Toggle Associations
-            6) current_permissions=$((current_permissions ^ 32)) ;; # Toggle Grid
-            7) current_permissions=$((current_permissions ^ 64)) ;; # Toggle Permissions
-            8) current_permissions=127 ;; # All permissions (1+2+4+8+16+32+64)
-            9) current_permissions=0 ;; # No permissions
+            1) current_permissions=$((current_permissions ^ 1)) ;;
+            2) current_permissions=$((current_permissions ^ 2)) ;;
+            3) current_permissions=$((current_permissions ^ 4)) ;;
+            4) current_permissions=$((current_permissions ^ 8)) ;;
+            5) current_permissions=$((current_permissions ^ 16)) ;;
+            6) current_permissions=$((current_permissions ^ 32)) ;;
+            7) current_permissions=$((current_permissions ^ 64)) ;;
+            8) current_permissions=127 ;;
+            9) current_permissions=0 ;;
             0) done=true ;;
             *)
-                echo -e "${RED}Invalid option. Please try again.${NC}"
-                sleep 1
+                echo "Invalid option. Please try again."
+                sleep 2
                 ;;
         esac
     done
