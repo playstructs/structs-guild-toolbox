@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PERMISSION_FLAGS=0
+
 function permissions_menu() {
     print_header
 
