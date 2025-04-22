@@ -108,10 +108,10 @@ function setup_guild() {
     # Get player address and ID
     PLAYER_ADDRESS=$(structsd ${PARAMS_KEYS} keys show ${STRUCTS_ACCOUNT} | jq -r .address)
     PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
-    echo -e "${YELLOW} Account: ${STRUCTS_ACCOUNT} Address: ${PLAYER_ADDRESS} Player ID: ${PLAYER_ID} ${NC}"
+    echo -e "${YELLOW}Account: ${STRUCTS_ACCOUNT} Address: ${PLAYER_ADDRESS} Player ID: ${PLAYER_ID} ${NC}"
 
     echo -e "${YELLOW}Checking current Player (${PLAYER_ID}) available capacity...${NC}"
-    PLAYER_CAPACITY=$(structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r '.Player.gridAttributes.capacity')
+    PLAYER_CAPACITY=$(structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r '.gridAttributes.capacity')
     echo -e "${GREEN}Player capacity: ${PLAYER_CAPACITY}${NC}"
 
     echo -e "${YELLOW}Checking for existing allocation...${NC}"
