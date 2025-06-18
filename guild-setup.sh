@@ -178,6 +178,7 @@ function setup_guild_metadata() {
     read -p "Guild Token Name (e.g., gld): " GUILD_TOKEN_NAME
     read -p "Guild Token Smallest Unit Name (e.g., ugld): " GUILD_TOKEN_SMALLEST_VALUE_NAME
     read -p "Discord Contact: " GUILD_SOCIAL_DISCORD_CONTACT
+    read -p "Base Energy Promise (watt): " GUILD_BASE_ENERGY
 
     # Create guild JSON
     GUILD_JSON=$( jq -n \
@@ -190,7 +191,8 @@ function setup_guild_metadata() {
                   --arg discordContact "$GUILD_SOCIAL_DISCORD_CONTACT" \
                   --arg coin "$GUILD_TOKEN_NAME" \
                   --arg smallestCoin "$GUILD_TOKEN_SMALLEST_VALUE_NAME" \
-                  '{ guild: { id: $id, name: $name, description: $description, tag: $tag, logo: $logo, website: $website, socials: { discord_contact: $discordContact }, denom: {"6": $coin, "0": $smallestCoin } } }' )
+                  --arg baseEnergy "$GUILD_BASE_ENERGY" \
+                  '{ guild: { id: $id, name: $name, description: $description, tag: $tag, baseEnergy: $baseEnergy, logo: $logo, website: $website, socials: { discordContact: $discordContact }, denom: {"6": $coin, "0": $smallestCoin } } }' )
 
     # Save guild metadata
     echo "$GUILD_JSON" > "$GUILD_CONFIG_FILE"

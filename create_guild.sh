@@ -116,6 +116,8 @@ read -r GUILD_TOKEN_SMALLEST_VALUE_NAME
 echo "Provide a public discord username contact (or don't, nbd):"
 read -r GUILD_SOCIAL_DISCORD_CONTACT
 
+read -p "Base Energy Promise (watt): " GUILD_BASE_ENERGY
+
 GUILD_JSON=$( jq -n \
                   --arg id "$GUILD_ID" \
                   --arg name "$GUILD_NAME" \
@@ -140,7 +142,8 @@ GUILD_JSON=$( jq -n \
                   --arg guildApi "$GUILD_SERVICE_GUILD_API" \
                   --arg reactorApi "$GUILD_SERVICE_REACTOR_API" \
                   --arg explorer "$GUILD_SERVIVCE_EXPLORER" \
-								'{ guild: { id: $id, name: $name, description: $description, tag: $tag, logo: $logo, domain: $domain, website: $website, socials: { bluesky: $bluesky, facebook: $facebook, farcaster: $farcaster, instagram: $instagram, twitch: $twitch, x: $x, youtube: $youtube, discord_contact: $discordContact, discord_server: $discordServer, telegram_contact: $telegramContact, telegram_channel: $telegramChannel }, denom: {"6": $coin, "0": $smallestCoin }, services:{ guild_api: $guildApi, reactorApi: $reactorApi, explorer: $explorer  } } }' )
+                  --arg baseEnergy "$GUILD_BASE_ENERGY" \
+								'{ guild: { id: $id, name: $name, description: $description, tag: $tag, baseEnergy: $baseEnergy, logo: $logo, domain: $domain, website: $website, socials: { bluesky: $bluesky, facebook: $facebook, farcaster: $farcaster, instagram: $instagram, twitch: $twitch, x: $x, youtube: $youtube, discordContact: $discordContact, discordServer: $discordServer, telegramContact: $telegramContact, telegramChannel: $telegramChannel }, denom: {"6": $coin, "0": $smallestCoin }, services:{ guildApi: $guildApi, reactorApi: $reactorApi, explorer: $explorer  } } }' )
 
 echo $GUILD_JSON > guild.json.tmp
 UPLOAD_URL=$(curl --upload-file 'guild.json.tmp' 'https://paste.c-net.org/')
