@@ -178,7 +178,7 @@ function setup_guild_metadata() {
     read -p "Guild Token Name (e.g., gld): " GUILD_TOKEN_NAME
     read -p "Guild Token Smallest Unit Name (e.g., ugld): " GUILD_TOKEN_SMALLEST_VALUE_NAME
     read -p "Discord Contact: " GUILD_SOCIAL_DISCORD_CONTACT
-    read -p "Base Energy Promise (watt): " GUILD_BASE_ENERGY
+    read -p "Base Energy Promise (milliwatt): " GUILD_BASE_ENERGY
 
     # Create guild JSON
     GUILD_JSON=$( jq -n \
