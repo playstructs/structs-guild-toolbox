@@ -8,6 +8,12 @@ function load_config() {
         PLAYER_ADDRESS=$(jq -r '.account_address' "$CONFIG_FILE")
         PLAYER_ID=$(jq -r '.account_player_id' "$CONFIG_FILE")
 
+        NEW_PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
+        if [ "$NEW_PLAYER_ID" != "$PLAYER_ID" ]; then
+          echo -e "${RED} Player ID has changed from ${PLAYER_ID} to ${NEW_PLAYER_ID}.${NC}"
+          echo "{\"account_name\": \"$STRUCTS_ACCOUNT\",\"account_address\": \"$PLAYER_ADDRESS\",\"account_player_id\": \"$NEW_PLAYER_ID\"}" > "$CONFIG_FILE"
+          PLAYER_ID=$NEW_PLAYER_ID
+        fi
     else
         setup_config
     fi
@@ -64,6 +70,27 @@ function load_guild_config() {
     if [ -f "$GUILD_CONFIG_FILE" ]; then
         GUILD_ID=$(jq -r '.guild.id' "$GUILD_CONFIG_FILE")
         echo -e "${GREEN}Loaded guild configuration for guild ID: ${GUILD_ID}${NC}"
+
+        CURRENT_NETWORK=$(structsd ${PARAMS_QUERY} status | jq -r .node_info.network)
+        if [ "$CURRENT_NETWORK" != "$LAST_NETWORK" ]; then
+          # TODO HERE
+
+          # recreate the guild record on chain
+
+          # get new guild id
+
+          # TODO load guild meta details from config
+
+          # TODO change guild.id to new ID
+
+          # Save details to file
+
+          # upload new details
+
+          # update guild record
+
+        fi
+
     else
         check_existing_guild
     fi
