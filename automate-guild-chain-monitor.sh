@@ -133,6 +133,17 @@ get_current_chain_id() {
     fi
 }
 
+
+# Store guild ID in $STRUCTS_PATH/status/guild_${chain_id}
+
+# If $STRUCTS_PATH/status/guild_${chain_id} doesn't exist
+  # Do a lookup, try to reverse engineer based on guild_admin account
+  # If no guild ID still,
+    # create guild
+    # write to that file
+
+
+
 check_chain_change() {
     local current_chain
     current_chain=$(get_current_chain_id)
