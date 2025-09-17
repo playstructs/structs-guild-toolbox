@@ -137,7 +137,12 @@ get_current_chain_id() {
 # Store guild ID in $STRUCTS_PATH/status/guild_${chain_id}
 
 # If $STRUCTS_PATH/status/guild_${chain_id} doesn't exist
+
+  # Check to see if the guild_admin account exists
+    #  create it with the mnemonic
+
   # Do a lookup, try to reverse engineer based on guild_admin account
+
   # If no guild ID still,
     # create guild
     # write to that file
