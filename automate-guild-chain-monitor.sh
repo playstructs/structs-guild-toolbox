@@ -133,19 +133,43 @@ get_current_chain_id() {
     fi
 }
 
+# Chain monitoring functions
+get_last_chain_id() {
+  local stored_chain_id
+  stored_chain_id=$(cat ${STRUCTS_PATH}/status/guild/last_chain_id)
 
-# Store guild ID in $STRUCTS_PATH/status/guild_${chain_id}
+  # If no last chain stored, then grab the latest
+  if [[ -z "$stored_chain_id" ]]; then
+      stored_chain_id=$(get_current_chain_id)
+      echo "$stored_chain_id" > ${STRUCTS_PATH}/status/guild/last_chain_id
+  fi
 
-# If $STRUCTS_PATH/status/guild_${chain_id} doesn't exist
+  echo "${stored_chain_id}"
+}
 
+check_player() {
   # Check to see if the guild_admin account exists
     #  create it with the mnemonic
+  return 1
+}
+
+check_guild() {
+
+    # Check to see if the guild_admin account exists
+
+
+# If $STRUCTS_PATH/status/${guild_admin}/guild_${chain_id} doesn't exist
+
 
   # Do a lookup, try to reverse engineer based on guild_admin account
 
   # If no guild ID still,
     # create guild
-    # write to that file
+    # write to $STRUCTS_PATH/status/${guild_admin}/guild_${chain_id}
+
+  return 1
+
+}
 
 
 
@@ -166,6 +190,8 @@ check_chain_change() {
     
     return 1
 }
+
+
 
 # Guild creation functions
 get_player_info() {
@@ -374,7 +400,7 @@ monitor_loop() {
     log_info "Account: $STRUCTS_ACCOUNT_NAME"
     
     # Get initial chain ID
-    LAST_CHAIN_ID=$(get_current_chain_id)
+    LAST_CHAIN_ID=$(get_last_chain_id)
     if [[ -n "$LAST_CHAIN_ID" ]]; then
         log_info "Initial chain ID: $LAST_CHAIN_ID"
     else
@@ -398,6 +424,7 @@ monitor_loop() {
             if recreate_guild; then
                 log_info "Guild recreation completed successfully"
                 LAST_CHAIN_ID="$CURRENT_CHAIN_ID"
+                echo "$LAST_CHAIN_ID" > ${STRUCTS_PATH}/status/guild/last_chain_id
             else
                 log_error "Guild recreation failed"
             fi
