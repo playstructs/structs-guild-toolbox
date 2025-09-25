@@ -147,13 +147,17 @@ get_last_chain_id() {
   echo "${stored_chain_id}"
 }
 
-check_player() {
+check_player_missing() {
   # Check to see if the guild_admin account exists
     #  create it with the mnemonic
   return 1
 }
 
-check_guild() {
+check_guild_missing() {
+
+  if check_player_missing; then
+    return 1
+  fi
 
     # Check to see if the guild_admin account exists
 
@@ -419,17 +423,21 @@ monitor_loop() {
         log_debug "Checking for chain changes..."
         
         if check_chain_change; then
-            log_info "Chain change detected, recreating guild..."
-            
-            if recreate_guild; then
-                log_info "Guild recreation completed successfully"
-                LAST_CHAIN_ID="$CURRENT_CHAIN_ID"
-                echo "$LAST_CHAIN_ID" > ${STRUCTS_PATH}/status/guild/last_chain_id
-            else
-                log_error "Guild recreation failed"
-            fi
+            log_info "Chain change detected... $LAST_CHAIN_ID -> $CURRENT_CHAIN_ID"
+            LAST_CHAIN_ID="$CURRENT_CHAIN_ID"
+            echo "$LAST_CHAIN_ID" > ${STRUCTS_PATH}/status/guild/last_chain_id
         fi
-        
+
+        log_debug "Checking for guild changes..."
+        if check_guild_missing; then
+          log_info "Guild missing from chain $CURRENT_CHAIN_ID"
+          if recreate_guild; then
+            log_info "Guild recreation completed successfully"
+          else
+            log_error "Guild recreation failed"
+          fi
+        fi
+
         log_debug "Sleeping for ${MONITOR_INTERVAL} seconds..."
         sleep $MONITOR_INTERVAL
     done
