@@ -27,12 +27,14 @@ DEFAULT_MONITOR_INTERVAL=300
 DEFAULT_LOG_LEVEL="INFO"
 DEFAULT_LOG_FILE="/var/log/guild-monitor.log"
 DEFAULT_PID_FILE="/var/run/guild-monitor.pid"
+DEFAULT_STRUCTS_PATH="$HOME/.structs"
 
 # Load environment variables with defaults
 MONITOR_INTERVAL=${MONITOR_INTERVAL:-$DEFAULT_MONITOR_INTERVAL}
 LOG_LEVEL=${LOG_LEVEL:-$DEFAULT_LOG_LEVEL}
 LOG_FILE=${LOG_FILE:-$DEFAULT_LOG_FILE}
 PID_FILE=${PID_FILE:-$DEFAULT_PID_FILE}
+STRUCTS_PATH=${STRUCTS_PATH:-$DEFAULT_STRUCTS_PATH}
 
 # Required environment variables
 REQUIRED_VARS=(
@@ -118,6 +120,8 @@ validate_environment() {
         exit 1
     fi
     
+    mkdir -p "${STRUCTS_PATH}/status/guild"
+
     log_info "Environment validation passed"
 }
 
@@ -147,15 +151,14 @@ get_last_chain_id() {
   echo "${stored_chain_id}"
 }
 
-check_player_missing() {
+check_player() {
   # Check to see if the guild_admin account exists
     #  create it with the mnemonic
-  return 1
+  return 0
 }
 
-check_guild_missing() {
-
-  if check_player_missing; then
+check_guild() {
+  if ! check_player; then
     return 1
   fi
 
@@ -165,16 +168,16 @@ check_guild_missing() {
   else
     # If  doesn't exist
     # Do a lookup, try to reverse engineer based on guild_admin account
-    GUILD_ID=$(structsd query player ${PLAYER_ID} | jq ".Player.guildId")
+    GUILD_ID=$(get_guild_id)
 
     if [[ -z "${GUILD_ID}" ]] || [ "$GUILD_ID" == "null" ]; then
-      return 1
+      return 2
     else
       return 0
     fi
   fi
 
-  return 1
+  return 3
 }
 
 
@@ -206,17 +209,19 @@ get_player_info() {
     PLAYER_ADDRESS=$(structsd $PARAMS_KEYS keys show $STRUCTS_ACCOUNT_NAME | jq -r .address)
     if [[ -z "$PLAYER_ADDRESS" || "$PLAYER_ADDRESS" == "null" ]]; then
         log_error "Failed to get player address"
-        return 0
+        return 1
     fi
     
     PLAYER_ID=$(structsd $PARAMS_QUERY query structs address $PLAYER_ADDRESS | jq -r .playerId)
     if [[ -z "$PLAYER_ID" || "$PLAYER_ID" == "null" ]]; then
         log_error "Failed to get player ID"
-        return 0
+        return 2
     fi
-    
+
+    mkdir -p "${STRUCTS_PATH}/status/${PLAYER_ADDRESS}"
+
     log_info "Player Address: $PLAYER_ADDRESS, Player ID: $PLAYER_ID"
-    return 1
+    return 0
 }
 
 create_allocation() {
@@ -322,7 +327,7 @@ recreate_guild() {
     # Get player information
     if ! get_player_info; then
         log_error "Failed to get player information"
-        return 0
+        return 1
     fi
     
     # Check for existing allocation
@@ -333,7 +338,7 @@ recreate_guild() {
         log_info "No allocation found, creating new allocation..."
         if ! create_allocation; then
             log_error "Failed to create allocation"
-            return 0
+            return 2
         fi
         allocation_id=$(get_allocation_id)
     else
@@ -348,7 +353,7 @@ recreate_guild() {
         log_info "No substation found, creating new substation..."
         if ! create_substation "$allocation_id"; then
             log_error "Failed to create substation"
-            return 0
+            return 3
         fi
         substation_id=$(get_substation_id "$allocation_id")
     else
@@ -363,7 +368,7 @@ recreate_guild() {
         log_info "No guild found, creating new guild..."
         if ! create_guild "$substation_id"; then
             log_error "Failed to create guild"
-            return 0
+            return 4
         fi
         guild_id=$(get_guild_id)
     else
@@ -372,7 +377,7 @@ recreate_guild() {
     
     if [[ -z "$guild_id" || "$guild_id" == "null" ]]; then
         log_error "Failed to get guild ID after creation"
-        return 0
+        return 5
     fi
     
     GUILD_ID="$guild_id"
@@ -380,11 +385,13 @@ recreate_guild() {
     # Upload guild metadata
     if ! upload_guild_metadata "$guild_id"; then
         log_error "Failed to upload guild metadata"
-        return 0
+        return 6
     fi
     
+    echo "$guild_id" > "${STRUCTS_PATH}/status/${PLAYER_ADDRESS}/guild_${CURRENT_CHAIN_ID}"
+
     log_info "Guild recreation completed successfully. Guild ID: $guild_id"
-    return 1
+    return 0
 }
 
 # Signal handling
@@ -435,7 +442,7 @@ monitor_loop() {
           log_info "Guild Admin not found on chain yet... $PLAYER_ADDRESS $CURRENT_CHAIN_ID"
         fi
 
-        while check_player_missing; do
+        while ! check_player; do
             log_debug "Waiting for guild admin player to exist on chain via external reactor creation... $PLAYER_ADDRESS $CURRENT_CHAIN_ID"
             if get_player_info; then
               log_info "Guild admin player found and loaded... $PLAYER_ID $PLAYER_ADDRESS $CURRENT_CHAIN_ID"
@@ -445,7 +452,7 @@ monitor_loop() {
         done
 
         log_debug "Checking for guild changes..."
-        if check_guild_missing; then
+        if ! check_guild; then
           log_info "Guild missing from chain $CURRENT_CHAIN_ID"
           if recreate_guild; then
             log_info "Guild recreation completed successfully"
