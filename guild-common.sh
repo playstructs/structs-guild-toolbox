@@ -2,7 +2,7 @@
 
 # Helper functions
 function print_header() {
-    #clear
+    clear
     echo -e "${BLUE}======================================================${NC}"
     echo -e "${BLUE}             STRUCTS GUILD ADMINISTRATION             ${NC}"
     echo -e "${BLUE}======================================================${NC}"

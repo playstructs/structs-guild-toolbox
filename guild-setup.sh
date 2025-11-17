@@ -67,16 +67,16 @@ function setup_config() {
 }
 
 function load_guild_config() {
-    echo "${GREEN}Guild Config Load${NC}"
-    echo "${GREEN}Guild Config file: ${GUILD_CONFIG_FILE}${NC}"
+    echo -e "${GREEN}Guild Config Load${NC}"
+    echo -e "${GREEN}Guild Config file: ${GUILD_CONFIG_FILE}${NC}"
     if [ -f "${GUILD_CONFIG_FILE}" ]; then
-      echo "${GREEN}Config file found.${NC}"
+      echo -e "${GREEN}Config file found.${NC}"
       GUILD_ID=$(jq -r '.guild.id' "${GUILD_CONFIG_FILE}")
       echo -e "${GREEN}Loaded guild configuration for guild ID: ${GUILD_ID}${NC}"
 
       CURRENT_NETWORK=$(structsd ${PARAMS_QUERY} status | jq -r .node_info.network)
       if [ "$CURRENT_NETWORK" != "$LAST_NETWORK" ]; then
-        echo "${RED}New network detected!${NC}"
+        echo -e "${RED}New network detected!${NC}"
         # TODO HERE
 
         # recreate the guild record on chain
