@@ -76,6 +76,7 @@ function load_guild_config() {
 
         CURRENT_NETWORK=$(structsd ${PARAMS_QUERY} status | jq -r .node_info.network)
         if [ "$CURRENT_NETWORK" != "$LAST_NETWORK" ]; then
+          echo "in the new codeblock"
           # TODO HERE
 
           # recreate the guild record on chain
