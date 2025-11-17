@@ -67,33 +67,33 @@ function setup_config() {
 }
 
 function load_guild_config() {
-    echo "Guild Config Load"
-    echo "Guild Config file: ${GUILD_CONFIG_FILE}"
+    echo "${GREEN}Guild Config Load${NC}"
+    echo "${GREEN}Guild Config file: ${GUILD_CONFIG_FILE}${NC}"
     if [ -f "${GUILD_CONFIG_FILE}" ]; then
-      echo "Config file found..."
-        GUILD_ID=$(jq -r '.guild.id' "${GUILD_CONFIG_FILE}")
-        echo -e "${GREEN}Loaded guild configuration for guild ID: ${GUILD_ID}${NC}"
+      echo "${GREEN}Config file found.${NC}"
+      GUILD_ID=$(jq -r '.guild.id' "${GUILD_CONFIG_FILE}")
+      echo -e "${GREEN}Loaded guild configuration for guild ID: ${GUILD_ID}${NC}"
 
-        CURRENT_NETWORK=$(structsd ${PARAMS_QUERY} status | jq -r .node_info.network)
-        if [ "$CURRENT_NETWORK" != "$LAST_NETWORK" ]; then
-          echo "in the new codeblock"
-          # TODO HERE
+      CURRENT_NETWORK=$(structsd ${PARAMS_QUERY} status | jq -r .node_info.network)
+      if [ "$CURRENT_NETWORK" != "$LAST_NETWORK" ]; then
+        echo "${RED}New network detected!${NC}"
+        # TODO HERE
 
-          # recreate the guild record on chain
+        # recreate the guild record on chain
 
-          # get new guild id
+        # get new guild id
 
-          # TODO load guild meta details from config
+        # TODO load guild meta details from config
 
-          # TODO change guild.id to new ID
+        # TODO change guild.id to new ID
 
-          # Save details to file
+        # Save details to file
 
-          # upload new details
+        # upload new details
 
-          # update guild record
+        # update guild record
 
-        fi
+      fi
 
     else
         check_existing_guild

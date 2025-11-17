@@ -29,14 +29,11 @@ function display_main_screen() {
     # PLAYER_ID=$(structsd ${PARAMS_QUERY} query structs address ${PLAYER_ADDRESS} | jq -r .playerId)
 
     # Get guild details
-    echo "Testing spot.."
-    echo "${GUILD_ID}"
     GUILD_JSON=$(structsd ${PARAMS_QUERY} query structs guild ${GUILD_ID})
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
     GUILD_DESCRIPTION=$(jq -r '.guild.description' "$GUILD_CONFIG_FILE")
     GUILD_TOKEN_DENOM=$(jq -r '.guild.denom["6"]' "$GUILD_CONFIG_FILE")
     GUILD_TOKEN_DENOM_SMALL=$(jq -r '.guild.denom["0"]' "$GUILD_CONFIG_FILE")
-    echo "Testing spot 2.."
     # Get reactor details
     REACTOR_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.primaryReactorId')
     REACTOR_JSON=$(structsd ${PARAMS_QUERY} query structs reactor ${REACTOR_ID})
@@ -57,7 +54,6 @@ function display_main_screen() {
         REACTOR_CAPACITY=0
     fi
 
-      echo "Testing spot 3.."
     # Get entry substation details
     ENTRY_SUBSTATION_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.entrySubstationId')
     SUBSTATION_JSON=$(structsd ${PARAMS_QUERY} query structs substation ${ENTRY_SUBSTATION_ID})
@@ -66,7 +62,6 @@ function display_main_screen() {
     SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount')
     SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity')
 
-    echo "Testing spot 4.."
     #Check if values are null and set defaults
     if [[ -z "$SUBSTATION_LOAD" || "$SUBSTATION_LOAD" == "null" ]]; then
         SUBSTATION_LOAD=0
