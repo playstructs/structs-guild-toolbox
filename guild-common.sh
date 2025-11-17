@@ -30,6 +30,7 @@ function display_main_screen() {
 
     # Get guild details
     echo "Testing spot.."
+    echo "${GUILD_ID}"
     GUILD_JSON=$(structsd ${PARAMS_QUERY} query structs guild ${GUILD_ID})
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
     GUILD_DESCRIPTION=$(jq -r '.guild.description' "$GUILD_CONFIG_FILE")

@@ -67,8 +67,11 @@ function setup_config() {
 }
 
 function load_guild_config() {
-    if [ -f "$GUILD_CONFIG_FILE" ]; then
-        GUILD_ID=$(jq -r '.guild.id' "$GUILD_CONFIG_FILE")
+    echo "Guild Config Load"
+    echo "Guild Config file: ${$GUILD_CONFIG_FILE}"
+    if [ -f "${GUILD_CONFIG_FILE}" ]; then
+      echo "Config file found..."
+        GUILD_ID=$(jq -r '.guild.id' "${GUILD_CONFIG_FILE}")
         echo -e "${GREEN}Loaded guild configuration for guild ID: ${GUILD_ID}${NC}"
 
         CURRENT_NETWORK=$(structsd ${PARAMS_QUERY} status | jq -r .node_info.network)
