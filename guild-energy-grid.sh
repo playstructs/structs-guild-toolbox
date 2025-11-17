@@ -7,7 +7,7 @@ function energy_grid_menu() {
     GUILD_JSON=$(structsd ${PARAMS_QUERY} query structs guild ${GUILD_ID})
     GUILD_NAME=$(jq -r '.guild.name' "$GUILD_CONFIG_FILE")
 
-    SUBSTATION_ID=$(echo "GUILD_JSON" | jq -r '.Guild.entrySubstationId')
+    SUBSTATION_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.entrySubstationId')
 
 
     echo -e "${CYAN}=== ENERGY GRID MANAGEMENT ===${NC}"
@@ -18,9 +18,8 @@ function energy_grid_menu() {
 
     # Get substation details
     SUBSTATION_JSON=$(structsd ${PARAMS_QUERY} query structs substation ${SUBSTATION_ID})
-    exit_code=$?
 
-    if [[ $exit_code -eq 0 ]]; then
+    if [[ $? -eq 0 ]]; then
         SUBSTATION_ID=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.id')
         SUBSTATION_OWNER=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.owner')
         SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity')
