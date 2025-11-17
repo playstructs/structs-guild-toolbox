@@ -13,11 +13,14 @@ function energy_grid_menu() {
     echo -e "${CYAN}=== ENERGY GRID MANAGEMENT ===${NC}"
     echo -e "${YELLOW}Guild:${NC} ${GUILD_NAME} (${GUILD_ID})"
     echo -e "${YELLOW}Player ID:${NC} ${PLAYER_ID}"
+    echo -e "${YELLOW}Substation ID:${NC} ${SUBSTATION_ID}"
     echo ""
 
     # Get substation details
     SUBSTATION_JSON=$(structsd ${PARAMS_QUERY} query structs substation ${SUBSTATION_ID})
-    if [[ $? -eq 0 ]]; then
+    exit_code=$?
+
+    if [[ $exit_code -eq 0 ]]; then
         SUBSTATION_ID=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.id')
         SUBSTATION_OWNER=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.owner')
         SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity')
