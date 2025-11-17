@@ -9,7 +9,6 @@ function energy_grid_menu() {
 
     SUBSTATION_ID=$(echo "$GUILD_JSON" | jq -r '.Guild.entrySubstationId')
 
-
     echo -e "${CYAN}=== ENERGY GRID MANAGEMENT ===${NC}"
     echo -e "${YELLOW}Guild:${NC} ${GUILD_NAME} (${GUILD_ID})"
     echo -e "${YELLOW}Player ID:${NC} ${PLAYER_ID}"
@@ -30,10 +29,10 @@ function energy_grid_menu() {
         echo -e "${CYAN}=== SUBSTATION DETAILS ===${NC}"
         echo -e "${YELLOW}Substation ID:${NC} ${SUBSTATION_ID}"
         echo -e "${YELLOW}Owner:${NC} ${SUBSTATION_OWNER}"
-        echo -e "${YELLOW}Capacity:${NC} ${SUBSTATION_CAPACITY}"
-        echo -e "${YELLOW}Load:${NC} ${SUBSTATION_LOAD}"
-        echo -e "${YELLOW}Connection Capacity:${NC} ${SUBSTATION_CONNECTION_CAPACITY}"
-        echo -e "${YELLOW}Connection Count:${NC} ${SUBSTATION_CONNECTION_COUNT}"
+        echo -e "${YELLOW}Capacity:${NC} ${SUBSTATION_CAPACITY:-0}"
+        echo -e "${YELLOW}Load:${NC} ${SUBSTATION_LOAD:-0}"
+        echo -e "${YELLOW}Connection Capacity:${NC} ${SUBSTATION_CONNECTION_CAPACITY:-0}"
+        echo -e "${YELLOW}Connection Count:${NC} ${SUBSTATION_CONNECTION_COUNT:-0}"
     else
         echo -e "${RED}No substation found for this guild.${NC}"
     fi
@@ -80,7 +79,7 @@ function create_provider() {
     SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount')
 
     echo -e "${YELLOW}Substation ID:${NC} ${SUBSTATION_ID}"
-    echo -e "${YELLOW}Available Capacity:${NC} ${SUBSTATION_LOAD} / ${SUBSTATION_CAPACITY}"
+    echo -e "${YELLOW}Available Capacity:${NC} ${SUBSTATION_LOAD:-0} / ${SUBSTATION_CAPACITY:-0}"
     echo ""
 
     # Ask for provider details
@@ -158,10 +157,10 @@ function create_provider() {
     echo -e "Substation ID: ${SUBSTATION_ID}"
     echo -e "Rate: ${RATE} ualpha per unit"
     echo -e "Access Policy: ${ACCESS_POLICY}"
-    echo -e "Provider Cancellation Penalty: ${PROVIDER_PENALTY} ualpha"
-    echo -e "Consumer Cancellation Penalty: ${CONSUMER_PENALTY} ualpha"
-    echo -e "Capacity Range: ${CAPACITY_MIN} - ${CAPACITY_MAX}"
-    echo -e "Duration Range: ${DURATION_MIN} - ${DURATION_MAX} blocks"
+    echo -e "Provider Cancellation Penalty: ${PROVIDER_PENALTY:-0} ualpha"
+    echo -e "Consumer Cancellation Penalty: ${CONSUMER_PENALTY:-0} ualpha"
+    echo -e "Capacity Range: ${CAPACITY_MIN:-0} - ${CAPACITY_MAX:-0}"
+    echo -e "Duration Range: ${DURATION_MIN:-0} - ${DURATION_MAX:-0} blocks"
     echo ""
 
     read -p "Confirm creating this provider? (y/n): " CONFIRM
