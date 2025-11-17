@@ -21,18 +21,18 @@ function energy_grid_menu() {
     if [[ $? -eq 0 ]]; then
         SUBSTATION_ID=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.id')
         SUBSTATION_OWNER=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.owner')
-        SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity')
-        SUBSTATION_LOAD=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.load')
-        SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity')
-        SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount')
+        SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity // 0')
+        SUBSTATION_LOAD=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.load // 0')
+        SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity // 0')
+        SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount // 0')
 
         echo -e "${CYAN}=== SUBSTATION DETAILS ===${NC}"
         echo -e "${YELLOW}Substation ID:${NC} ${SUBSTATION_ID}"
         echo -e "${YELLOW}Owner:${NC} ${SUBSTATION_OWNER}"
-        echo -e "${YELLOW}Capacity:${NC} ${SUBSTATION_CAPACITY:-0}"
-        echo -e "${YELLOW}Load:${NC} ${SUBSTATION_LOAD:-0}"
-        echo -e "${YELLOW}Connection Capacity:${NC} ${SUBSTATION_CONNECTION_CAPACITY:-0}"
-        echo -e "${YELLOW}Connection Count:${NC} ${SUBSTATION_CONNECTION_COUNT:-0}"
+        echo -e "${YELLOW}Capacity:${NC} ${SUBSTATION_CAPACITY}"
+        echo -e "${YELLOW}Load:${NC} ${SUBSTATION_LOAD}"
+        echo -e "${YELLOW}Connection Capacity:${NC} ${SUBSTATION_CONNECTION_CAPACITY}"
+        echo -e "${YELLOW}Connection Count:${NC} ${SUBSTATION_CONNECTION_COUNT}"
     else
         echo -e "${RED}No substation found for this guild.${NC}"
     fi
@@ -73,13 +73,13 @@ function create_provider() {
     fi
 
     SUBSTATION_ID=$(echo "$SUBSTATION_JSON" | jq -r '.Substation.id')
-    SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity')
-    SUBSTATION_LOAD=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.load')
-    SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity')
-    SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount')
+    SUBSTATION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.capacity // 0')
+    SUBSTATION_LOAD=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.load  // 0')
+    SUBSTATION_CONNECTION_CAPACITY=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCapacity // 0')
+    SUBSTATION_CONNECTION_COUNT=$(echo "$SUBSTATION_JSON" | jq -r '.gridAttributes.connectionCount // 0')
 
     echo -e "${YELLOW}Substation ID:${NC} ${SUBSTATION_ID}"
-    echo -e "${YELLOW}Available Capacity:${NC} ${SUBSTATION_LOAD:-0} / ${SUBSTATION_CAPACITY:-0}"
+    echo -e "${YELLOW}Available Capacity:${NC} ${SUBSTATION_LOAD} / ${SUBSTATION_CAPACITY}"
     echo ""
 
     # Ask for provider details
@@ -157,10 +157,10 @@ function create_provider() {
     echo -e "Substation ID: ${SUBSTATION_ID}"
     echo -e "Rate: ${RATE} ualpha per unit"
     echo -e "Access Policy: ${ACCESS_POLICY}"
-    echo -e "Provider Cancellation Penalty: ${PROVIDER_PENALTY:-0} ualpha"
-    echo -e "Consumer Cancellation Penalty: ${CONSUMER_PENALTY:-0} ualpha"
-    echo -e "Capacity Range: ${CAPACITY_MIN:-0} - ${CAPACITY_MAX:-0}"
-    echo -e "Duration Range: ${DURATION_MIN:-0} - ${DURATION_MAX:-0} blocks"
+    echo -e "Provider Cancellation Penalty: ${PROVIDER_PENALTY} ualpha"
+    echo -e "Consumer Cancellation Penalty: ${CONSUMER_PENALTY} ualpha"
+    echo -e "Capacity Range: ${CAPACITY_MIN} - ${CAPACITY_MAX}"
+    echo -e "Duration Range: ${DURATION_MIN} - ${DURATION_MAX} blocks"
     echo ""
 
     read -p "Confirm creating this provider? (y/n): " CONFIRM
