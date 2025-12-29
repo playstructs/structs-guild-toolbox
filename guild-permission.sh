@@ -62,6 +62,7 @@ function select_permissions() {
             if (( (current_permissions & 16) != 0 )); then echo "  [X] Associations"; else echo "  [ ] Associations"; fi
             if (( (current_permissions & 32) != 0 )); then echo "  [X] Grid"; else echo "  [ ] Grid"; fi
             if (( (current_permissions & 64) != 0 )); then echo "  [X] Permissions"; else echo "  [ ] Permissions"; fi
+            if (( (current_permissions & 128) != 0 )); then echo "  [X] Hash"; else echo "  [ ] Hash"; fi
         fi
         echo ""
 
@@ -73,8 +74,9 @@ function select_permissions() {
         echo "5. Associations"
         echo "6. Grid"
         echo "7. Permissions"
-        echo "8. All (select all)"
-        echo "9. None (clear all)"
+        echo "8. Hash"
+        echo "9. All (select all)"
+        echo "10. None (clear all)"
         echo "0. Done"
         echo ""
 
@@ -89,8 +91,9 @@ function select_permissions() {
             5) current_permissions=$((current_permissions ^ 16)) ;;
             6) current_permissions=$((current_permissions ^ 32)) ;;
             7) current_permissions=$((current_permissions ^ 64)) ;;
-            8) current_permissions=127 ;;
-            9) current_permissions=0 ;;
+            8) current_permissions=$((current_permissions ^ 128)) ;;
+            9) current_permissions=255 ;;
+            10) current_permissions=0 ;;
             0) done=true ;;
             *)
                 echo "Invalid option. Please try again."
@@ -181,6 +184,15 @@ function display_permissions() {
             first=false
         else
             permission_string="${permission_string}, Permissions"
+        fi
+    fi
+
+    if (( (permission_value & 128) != 0 )); then
+        if [ "$first" = true ]; then
+            permission_string="Hash"
+            first=false
+        else
+            permission_string="${permission_string}, Hash"
         fi
     fi
 
