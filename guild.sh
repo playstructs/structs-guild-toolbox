@@ -24,14 +24,17 @@ NC='\033[0m' # No Color
 # Create config directory if it doesn't exist
 mkdir -p "$CONFIG_DIR"
 
-# Source all module files
-source "guild-common.sh"
-source "guild-setup.sh"
-source "guild-energy-grid.sh"
-source "guild-central-bank.sh"
-source "guild-membership.sh"
-source "guild-config.sh"
-source "guild-permission.sh"
+# Source all module files (relative to this script, so it runs from anywhere)
+GUILD_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$GUILD_SCRIPT_DIR/structs-lib.sh"
+source "$GUILD_SCRIPT_DIR/structs-wallet.sh"
+source "$GUILD_SCRIPT_DIR/guild-common.sh"
+source "$GUILD_SCRIPT_DIR/guild-setup.sh"
+source "$GUILD_SCRIPT_DIR/guild-energy-grid.sh"
+source "$GUILD_SCRIPT_DIR/guild-central-bank.sh"
+source "$GUILD_SCRIPT_DIR/guild-membership.sh"
+source "$GUILD_SCRIPT_DIR/guild-config.sh"
+source "$GUILD_SCRIPT_DIR/guild-permission.sh"
 
 # Initialize the tool
 function initialize() {

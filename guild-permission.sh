@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Structs permission flags: 24 bits (0–23), uint64. See:
+# Structs permission flags: 25 bits (0–24), uint64. See:
 # https://structs.ai/knowledge/mechanics/permissions.html
-PERM_ALL=16777215
+PERM_ALL=33554431
 
 PERMISSION_FLAGS=0
 
@@ -31,6 +31,7 @@ PERM_BIT_NAMES=(
     PermHashMine
     PermHashRefine
     PermHashRaid
+    PermGuildUGCUpdate
 )
 
 function _perm_bit_value() {
@@ -178,7 +179,7 @@ function select_preset_composite() {
     echo -e "${GREEN}2.${NC} PermHashAll (15728640)"
     echo -e "${GREEN}3.${NC} PermAgreementAll (14)"
     echo -e "${GREEN}4.${NC} PermProviderAll (393230)"
-    echo -e "${GREEN}5.${NC} PermGuildAll (315910)"
+    echo -e "${GREEN}5.${NC} PermGuildAll (17169406)"
     echo -e "${GREEN}6.${NC} PermSubstationAll (1294)"
     echo -e "${GREEN}7.${NC} PermReactorAll (524558)"
     echo -e "${GREEN}8.${NC} PermAllocationAll (2062)"
@@ -191,7 +192,7 @@ function select_preset_composite() {
         2) PRESET_CHOICE_VAL=15728640 ;;
         3) PRESET_CHOICE_VAL=14 ;;
         4) PRESET_CHOICE_VAL=393230 ;;
-        5) PRESET_CHOICE_VAL=315910 ;;
+        5) PRESET_CHOICE_VAL=17169406 ;;
         6) PRESET_CHOICE_VAL=1294 ;;
         7) PRESET_CHOICE_VAL=524558 ;;
         8) PRESET_CHOICE_VAL=2062 ;;
@@ -215,7 +216,7 @@ function select_permissions() {
         echo -e "${YELLOW}Per-bit toggles:${NC} enter bit index ${GREEN}0${NC}-${GREEN}23${NC} to XOR that flag into the mask."
         echo ""
         local b
-        for b in $(seq 0 23); do
+        for b in $(seq 0 24); do
             local pv
             pv=$(_perm_bit_value "$b")
             local on=" "
@@ -294,12 +295,12 @@ function display_permissions() {
     fi
 
     if [ "$permission_value" -eq "${PERM_ALL}" ]; then
-        echo "PermAll / PermPlayerAll (all 24 bits)"
+        echo "PermAll / PermPlayerAll (all 25 bits)"
         return
     fi
 
     local i
-    for i in $(seq 0 23); do
+    for i in $(seq 0 24); do
         local pv
         pv=$(_perm_bit_value "$i")
         if (( (permission_value & pv) != 0 )); then

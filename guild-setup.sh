@@ -175,8 +175,17 @@ function setup_guild() {
     GUILD_ID=$(structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r '.Player.guildId')
 
     if [[ -z "${GUILD_ID}" ]] || [ "$GUILD_ID" == "null" ]; then
-        echo -e "${YELLOW}Creating a new guild...${NC}"
-        structsd ${PARAMS_TX} tx structs guild-create "temp.endpoint.com" ${SUBSTATION_ID} --from ${STRUCTS_ACCOUNT}
+        # guild-create now needs a reactor (it does not have to be yours) and
+        # costs 2 alpha from your player vault
+        REACTOR_ID=$(structsd ${PARAMS_QUERY} query structs reactor-all --page-limit 1000 | jq -r --arg p "$PLAYER_ID" '[.Reactor[] | select(.owner == $p)][0].id // empty')
+        if [[ -z "${REACTOR_ID}" ]]; then
+            echo -e "${YELLOW}You do not own a reactor. A guild must be founded on an existing reactor.${NC}"
+            read -p "Reactor ID to found the guild on (e.g. 3-1): " REACTOR_ID
+        else
+            echo -e "${GREEN}Using your reactor: ${REACTOR_ID}${NC}"
+        fi
+        echo -e "${YELLOW}Creating a new guild (costs 2 alpha from your player vault)...${NC}"
+        structsd ${PARAMS_TX} tx structs guild-create ${REACTOR_ID} "temp.endpoint.com" ${SUBSTATION_ID} --from ${STRUCTS_ACCOUNT}
         sleep $SLEEP_TIME
 
         GUILD_ID=$(structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r '.Player.guildId')

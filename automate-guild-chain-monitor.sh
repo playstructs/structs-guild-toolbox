@@ -265,8 +265,18 @@ get_substation_id() {
 create_guild() {
     local substation_id=$1
     log_info "Creating guild with substation $substation_id..."
-    
-    structsd $PARAMS_TX tx structs guild-create "temp.endpoint.com" $substation_id --from $STRUCTS_ACCOUNT_NAME
+
+    # guild-create needs a reactor; use GUILD_REACTOR_ID or the player's own reactor
+    local reactor_id="${GUILD_REACTOR_ID:-}"
+    if [[ -z "$reactor_id" ]]; then
+        reactor_id=$(structsd $PARAMS_QUERY query structs reactor-all --page-limit 1000 | jq -r --arg p "$PLAYER_ID" '[.Reactor[] | select(.owner == $p)][0].id // empty')
+    fi
+    if [[ -z "$reactor_id" ]]; then
+        log_error "No reactor found for $PLAYER_ID; set GUILD_REACTOR_ID"
+        return 1
+    fi
+
+    structsd $PARAMS_TX tx structs guild-create "$reactor_id" "temp.endpoint.com" $substation_id --from $STRUCTS_ACCOUNT_NAME
     sleep $SLEEP_TIME
     
     log_info "Guild created successfully"

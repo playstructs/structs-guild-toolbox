@@ -104,7 +104,7 @@ function display_main_screen() {
     echo -e "${CYAN}=== ACCOUNT DETAILS ===${NC}"
     echo -e "${YELLOW}Account:${NC} ${STRUCTS_ACCOUNT}"
     echo -e "${YELLOW}Player ID:${NC} ${PLAYER_ID}"
-    echo -e "${YELLOW}Alpha Balance:${NC} ${UALPHA_BALANCE}ualpha"
+    echo -e "${YELLOW}Alpha Balance:${NC} ${UALPHA_BALANCE}ualpha ${CYAN}(this address only — see Wallet for your whole player account)${NC}"
     echo -e "${YELLOW}Token Balance:${NC} ${TOKEN_BALANCE}${GUILD_TOKEN_DENOM_SMALL} (uguild.${GUILD_ID}) "
     echo ""
 
@@ -115,6 +115,7 @@ function display_main_screen() {
     echo -e "${GREEN}4.${NC} Membership"
     echo -e "${GREEN}5.${NC} Guild Configuration"
     echo -e "${GREEN}6.${NC} Permissions"
+    echo -e "${GREEN}7.${NC} Wallet (vault + all addresses, send, delegations)"
     echo -e "${GREEN}0.${NC} Exit"
     echo ""
 
@@ -127,6 +128,11 @@ function display_main_screen() {
         4) membership_menu ;;
         5) guild_configuration_menu ;;
         6) permissions_menu ;;
+        7)
+            SX_SIGNER="$PLAYER_ADDRESS"; SX_PLAYER_ID="$PLAYER_ID"
+            sx_wallet_menu "$PLAYER_ID"
+            display_main_screen
+            ;;
         0) exit 0 ;;
         *)
             echo -e "${RED}Invalid option. Please try again.${NC}"

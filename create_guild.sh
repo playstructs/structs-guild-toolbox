@@ -69,9 +69,15 @@ echo "${SUBSTATION_ID}"
 echo "Checking to see if Guild Already Exists"
 GUILD_ID=`structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r .Player.guildId`
 if [[ -z "${GUILD_ID}" ]] || [ "$GUILD_ID" == "null" ]; then
-  echo "Creating a new Guild"
-  # Create Guild
-  structsd ${PARAMS_TX} tx structs guild-create "temp.endpoint.com" ${SUBSTATION_ID} --from ${VALIDATOR_ACCOUNT_NAME}
+  echo "Creating a new Guild (costs 2 alpha from your player vault)"
+  # guild-create needs a reactor; default to the one this player owns
+  REACTOR_ID=`structsd ${PARAMS_QUERY} query structs reactor-all --page-limit 1000 | jq -r --arg p "$PLAYER_ID" '[.Reactor[] | select(.owner == $p)][0].id // empty'`
+  if [[ -z "${REACTOR_ID}" ]]; then
+    echo "No reactor owned by ${PLAYER_ID}. Reactor ID to found the guild on (e.g. 3-1):"
+    read -r REACTOR_ID
+  fi
+  echo "Using reactor ${REACTOR_ID}"
+  structsd ${PARAMS_TX} tx structs guild-create ${REACTOR_ID} "temp.endpoint.com" ${SUBSTATION_ID} --from ${VALIDATOR_ACCOUNT_NAME}
   sleep $SLEEP
   # Get the new Guild ID
   GUILD_ID=`structsd ${PARAMS_QUERY} query structs player ${PLAYER_ID} | jq -r .Player.guildId`
