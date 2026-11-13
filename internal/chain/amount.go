@@ -167,7 +167,10 @@ type Amount struct {
 // ParseAmount understands:
 //
 //	2.5alpha | 2.5 alpha | 2500000ualpha | 10guild.0-3 | 500uguild.0-3
-//	1000 (base units of defaultDenom) | all | all guild.0-3 | 25%
+//	all | all guild.0-3 (defaultDenom when no unit is given)
+//
+// A number needs a unit: "100" could mean 100 alpha or 100 ualpha (0.0001
+// alpha), and guessing wrong moves a million times too much or too little.
 func ParseAmount(raw, defaultDenom string) (Amount, error) {
 	s := strings.ReplaceAll(strings.TrimSpace(raw), " ", "")
 	if s == "" {
@@ -183,9 +186,12 @@ func ParseAmount(raw, defaultDenom string) (Amount, error) {
 	}
 	intPart := strings.NewReplacer(",", "", "_", "").Replace(m[1])
 	dec, unit := m[2], m[3]
+	if unit == "" {
+		return Amount{}, missingUnit(s, defaultDenom)
+	}
 	denom := normalizeDenom(unit, defaultDenom)
-	// "2.5alpha" and a bare "2.5" are display units; "2500000" and "2500000ualpha" are base units
-	displayUnit := (unit != "" && !strings.HasPrefix(unit, "u")) || (unit == "" && dec != "")
+	// "2.5alpha" is in display units; "2500000ualpha" is in base units
+	displayUnit := !strings.HasPrefix(unit, "u")
 	if displayUnit && HasMicroUnits(denom) {
 		if len(dec) > 6 {
 			return Amount{}, fmt.Errorf("%q has more than 6 decimal places", raw)
@@ -199,6 +205,24 @@ func ParseAmount(raw, defaultDenom string) (Amount, error) {
 	}
 	v, err := ParseInt(intPart)
 	return Amount{Value: v, Denom: denom}, err
+}
+
+// missingUnit explains both readings of a bare number:
+// "100 needs a unit: 100alpha (100 alpha) or 100ualpha (0.0001 alpha)".
+func missingUnit(n, defaultDenom string) error {
+	if !HasMicroUnits(defaultDenom) {
+		return fmt.Errorf("%s needs a unit, e.g. %s%s", n, n, defaultDenom)
+	}
+	d := DisplayDenom(defaultDenom)
+	whole := strings.NewReplacer(",", "", "_", "").Replace(n)
+	if strings.Contains(whole, ".") {
+		return fmt.Errorf("%s needs a unit: %s%s", n, n, d)
+	}
+	base, err := ParseInt(whole)
+	if err != nil {
+		return fmt.Errorf("%s needs a unit, e.g. %s%s", n, n, d)
+	}
+	return fmt.Errorf("%s needs a unit: %s%s (%s %s) or %s%s (%s)", n, n, d, FormatAmount(base.Mul(NewInt(1_000_000)), defaultDenom), d, n, defaultDenom, Format(base, defaultDenom))
 }
 
 func normalizeDenom(unit, def string) string {

@@ -62,7 +62,7 @@ Type `/` for the command menu. **Tab** completes, and **Enter** plans the action
 | `/invite` `/approve` `/deny` `/kick` `/members` `/mint` `/withdraw` | Guild admin. |
 | `/wallet <player>` | Look anyone up. Typing a bare player id or address does the same. |
 
-Reactors can be named by reactor id (`3-12`), owning player (`1-186`), guild (`0-3`, its primary reactor), moniker or valoper. Amounts accept `2.5alpha`, `2500000ualpha`, `10guild.0-3` or `all`.
+Reactors can be named by reactor id (`3-12`), owning player (`1-186`), guild (`0-3`, its primary reactor), moniker or valoper. Amounts need a unit: `2.5alpha`, `2500000ualpha`, `10guild.0-3` or `all`. A bare `100` is refused, because it could mean 100 alpha or 100 ualpha (0.0001 alpha).
 
 **Every action is planned, simulated, then confirmed.** The card shows each source it will draw from, simulates the whole transaction against the chain, and only then offers **⏎ sign & broadcast**. Actions that need several sources become one atomic multi-message transaction. Some actions depend on an earlier step in the same transaction: guild banks only use your Player Vault, so `/convert` and `/redeem` first move any shortfall into the vault, then convert.
 

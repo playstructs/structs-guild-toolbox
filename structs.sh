@@ -56,7 +56,7 @@ WALLET
   delegations [player]               Only the delegation section.
 
   <amount>    2.5alpha | 2500000ualpha | 10guild.0-3 | 500uguild.0-3 | all
-              (a bare number means base units, like structsd)
+              (a number needs a unit: 100 alone is refused)
   <validator> reactor id (3-12), owning player id (1-186), guild id (0-3,
               its primary reactor), moniker, or structsvaloper1... address
   SRC         vault | primary | one of your registered addresses

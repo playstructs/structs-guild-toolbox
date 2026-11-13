@@ -20,7 +20,13 @@ func acct() *Account {
 	}
 }
 
-func amt(s string) chain.Amount { a, _ := chain.ParseAmount(s, chain.Alpha); return a }
+func amt(s string) chain.Amount {
+	a, err := chain.ParseAmount(s, chain.Alpha)
+	if err != nil {
+		panic(err) // a test typo, not a planner bug
+	}
+	return a
+}
 
 func TestPlanLiquidSplitsVaultFirst(t *testing.T) {
 	d, err := acct().PlanLiquid("ualpha", amt("0.8alpha"), "", "")
@@ -52,7 +58,7 @@ func TestPlanLiquidInsufficient(t *testing.T) {
 }
 
 func TestPlanDelegationLargestFirst(t *testing.T) {
-	d, err := acct().PlanDelegation("val1", amt("2448000003"), "")
+	d, err := acct().PlanDelegation("val1", amt("2448000003ualpha"), "")
 	if err != nil {
 		t.Fatal(err)
 	}

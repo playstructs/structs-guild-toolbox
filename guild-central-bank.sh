@@ -178,7 +178,7 @@ function convert_alpha() {
     fi
     echo -e "${YELLOW}Alpha in your player vault:${NC} $(sx_fmt "$VAULT_ALPHA")"
     echo ""
-    read -p "Alpha to convert (e.g. 2alpha or 2000000): " RAW
+    read -p "Alpha to convert (e.g. 2alpha or 2000000ualpha): " RAW
     PARSED=$(sx_parse_amount "$RAW") || { _bank_back; return; }
     ALPHA_AMOUNT=${PARSED% *}
     if [ "$(sx_cmp "$ALPHA_AMOUNT" "$VAULT_ALPHA")" = "1" ]; then

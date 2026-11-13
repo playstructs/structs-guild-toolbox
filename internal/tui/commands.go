@@ -39,7 +39,7 @@ func init() {
 		// guild bank
 		{name: "convert", args: "<alpha amount> [guild]", desc: "Buy guild tokens with alpha (vault topped up for you)", group: "Guild", minArgs: 1, run: cmdConvert},
 		{name: "redeem", args: "<token amount|all> [guild]", desc: "Redeem guild tokens for alpha", group: "Guild", minArgs: 1, run: cmdRedeem},
-		{name: "mint", args: "<alpha> <tokens>", desc: "Mint guild tokens from the guild treasury (admin)", group: "Guild", minArgs: 2, run: cmdMint},
+		{name: "mint", args: "<n>alpha <n>guild.X", desc: "Mint guild tokens from the guild treasury (admin)", group: "Guild", minArgs: 2, run: cmdMint},
 		{name: "invite", args: "<player>", desc: "Invite a player to your guild", group: "Guild", minArgs: 1, run: cmdInvite},
 		{name: "approve", args: "<player>", desc: "Approve a join request", group: "Guild", minArgs: 1, run: cmdApprove},
 		{name: "deny", args: "<player>", desc: "Deny a request or revoke an invite", group: "Guild", aliases: []string{"revoke"}, minArgs: 1, run: cmdDeny},

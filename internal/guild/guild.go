@@ -155,13 +155,16 @@ func Mint(v *View, alpha, tokens string) (*wallet.Plan, error) {
 	if err != nil {
 		return nil, err
 	}
+	if a.Denom != chain.Alpha {
+		return nil, fmt.Errorf("mint collateral is alpha, e.g. 100alpha")
+	}
 	denom := "uguild." + v.Guild.ID
 	t, err := chain.ParseAmount(tokens, denom)
 	if err != nil {
 		return nil, err
 	}
-	if t.Denom == chain.Alpha {
-		t.Denom = denom
+	if t.Denom != denom {
+		return nil, fmt.Errorf("mint amounts are in %s, e.g. 100%s", chain.DisplayDenom(denom), chain.DisplayDenom(denom))
 	}
 	if have := v.VaultBalances[chain.Alpha]; have.Cmp(a.Value) < 0 {
 		return nil, fmt.Errorf("the guild treasury holds %s; send alpha to the guild vault (/send %s <amount>) first", chain.Format(have, chain.Alpha), v.Guild.ID)

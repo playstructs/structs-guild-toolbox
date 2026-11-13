@@ -10,9 +10,11 @@ func TestParseAmount(t *testing.T) {
 	}{
 		{"2.5alpha", "2500000", "ualpha", false, false},
 		{"2.5 alpha", "2500000", "ualpha", false, false},
-		{"2.5", "2500000", "ualpha", false, false},
+		{"2.5", "", "", false, true},
 		{"2500000ualpha", "2500000", "ualpha", false, false},
-		{"1000", "1000", "ualpha", false, false},
+		{"1000", "", "", false, true},
+		{"1,000", "", "", false, true},
+		{"100 ualpha", "100", "ualpha", false, false},
 		{"1,000alpha", "1000000000", "ualpha", false, false},
 		{"10guild.0-3", "10000000", "uguild.0-3", false, false},
 		{"500uguild.0-3", "500", "uguild.0-3", false, false},
@@ -53,5 +55,23 @@ func TestHumanize(t *testing.T) {
 	in := "rpc error: code = Unknown desc = failed to execute message; message index: 1: spendable balance 0ualpha is smaller than 1ualpha: insufficient funds [cosmos/cosmos-sdk@v0.53.8/x/bank/keeper/send.go:298] with gas used: '85170'"
 	if got := Humanize(in); got != "step 2: spendable balance 0ualpha is smaller than 1ualpha: insufficient funds" {
 		t.Errorf("got %q", got)
+	}
+}
+
+func TestMissingUnitExplainsBothReadings(t *testing.T) {
+	_, err := ParseAmount("100", Alpha)
+	if err == nil || err.Error() != "100 needs a unit: 100alpha (100 alpha) or 100ualpha (0.0001 alpha)" {
+		t.Fatalf("got %v", err)
+	}
+	_, err = ParseAmount("2.5", Alpha)
+	if err == nil || err.Error() != "2.5 needs a unit: 2.5alpha" {
+		t.Fatalf("got %v", err)
+	}
+	_, err = ParseAmount("5", "uguild.0-3")
+	if err == nil || err.Error() != "5 needs a unit: 5guild.0-3 (5 guild.0-3) or 5uguild.0-3 (0.000005 guild.0-3)" {
+		t.Fatalf("got %v", err)
+	}
+	if a, err := ParseAmount("all", "uguild.0-3"); err != nil || !a.All || a.Denom != "uguild.0-3" {
+		t.Fatalf("all should still default the denom: %+v %v", a, err)
 	}
 }

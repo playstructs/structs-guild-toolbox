@@ -465,9 +465,6 @@ func (b *Builder) Redeem(ctx context.Context, guildID, amount string) (*Plan, er
 	if amt.All {
 		amt.Value = b.A.Liquid(bs.Denom)
 	}
-	if amt.Denom == chain.Alpha {
-		amt.Denom = bs.Denom // "redeem 5" means 5 base units of the token
-	}
 	if amt.Denom != bs.Denom {
 		return nil, fmt.Errorf("guild %s redeems %s, not %s", guildID, bs.Denom, amt.Denom)
 	}

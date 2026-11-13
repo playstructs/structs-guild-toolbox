@@ -150,7 +150,7 @@ sx_fmt() {
 #   250ualpha            -> 250 ualpha
 #   10guild.0-3          -> 10000000 uguild.0-3
 #   500uguild.0-3        -> 500 uguild.0-3
-#   1000                 -> 1000 ualpha (bare numbers are base units, like structsd)
+#   1000                 -> error: a number needs a unit (100alpha or 100ualpha?)
 #   all [denom]          -> all <denom>
 sx_parse_amount() {
     local raw default_denom="${2:-ualpha}"
@@ -166,7 +166,18 @@ sx_parse_amount() {
     fi
     if [[ "$raw" =~ ^([0-9]+)(\.([0-9]+))?([a-zA-Z][a-zA-Z0-9./-]*)?$ ]]; then
         local int="${BASH_REMATCH[1]}" dec="${BASH_REMATCH[3]}" denom="${BASH_REMATCH[4]}"
-        [ -z "$denom" ] && denom="$default_denom"
+        if [ -z "$denom" ]; then
+            # "100" could mean 100 alpha or 100 ualpha (0.0001 alpha) — never guess
+            local d="${default_denom#u}"
+            if [ -n "$dec" ]; then
+                sx_err "$raw needs a unit: ${raw}${d}"
+            elif [ "$default_denom" = "ualpha" ] || [[ "$default_denom" == uguild.* ]]; then
+                sx_err "$raw needs a unit: ${raw}${d} ($raw $d) or ${raw}${default_denom} ($(sx_fmt "$int" "$default_denom"))"
+            else
+                sx_err "$raw needs a unit, e.g. ${raw}${default_denom}"
+            fi
+            return 1
+        fi
         case "$denom" in
             alpha|guild.*)
                 [ "$denom" = "alpha" ] && denom="ualpha" || denom="u$denom"
