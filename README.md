@@ -52,7 +52,7 @@ Type `/` for the command menu. **Tab** completes, and **Enter** plans the action
 
 | Command | What it does |
 |---|---|
-| `/send <to> <amount> [from]` | Send from the whole account. `<to>` is an address, a player id (their vault) or a guild id (its vault). |
+| `/send <to> <amount> [from]` | Send from the whole account. `<to>` is any `structs1…` address, including non-player accounts such as exchanges or fresh wallets, a player id (their vault) or a guild id (its vault). The checksum is verified before anything is built. The card says whose address it is, and warns when an address has never been used on chain. |
 | `/consolidate [vault\|primary\|addr]` | Move every balance into one address. |
 | `/delegate <reactor> <amount>` | Infuse a reactor from wherever your alpha sits. |
 | `/undelegate <reactor> <amount\|all>` | Defuse from whichever addresses hold the stake. |

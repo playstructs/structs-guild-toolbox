@@ -319,15 +319,41 @@ sx_w_execute() {
 # Resolve a send recipient: address, or player id (-> that player's vault)
 sx_w_resolve_recipient() {
     local r="$1"
-    if sx_is_address "$r"; then echo "$r"; return 0; fi
-    if sx_is_player_id "$r"; then
+    case "$r" in
+        structsvaloper1*)
+            sx_err "that is a validator operator address — to stake use: delegate $r <amount>"; return 1 ;;
+        structs1*|STRUCTS1*)
+            r=$(echo "$r" | tr 'A-Z' 'a-z')
+            # structsd checks the bech32 checksum for us (offline; takes no node/keyring flags)
+            if ! "$STRUCTSD" debug addr "$r" >/dev/null 2>&1; then
+                sx_err "$r has a typo: its checksum does not match (check every character)"; return 1
+            fi
+            echo "$r"; return 0 ;;
+    esac
+    if sx_is_player_id "$r" || sx_is_guild_id "$r"; then
         local v
         v=$(sx_vault_of "$r")
-        [ -z "$v" ] && { sx_err "player $r has no vault"; return 1; }
+        [ -z "$v" ] && { sx_err "$r has no vault"; return 1; }
         echo "$v"; return 0
     fi
-    sx_err "recipient must be a structs1… address or a player id (1-N)"
+    sx_err "recipient must be a structs1… address (any account), a player id (1-N) or a guild id (0-N)"
     return 1
+}
+
+# Describe a recipient address for the plan
+sx_w_describe_recipient() {
+    local addr="$1" pid primary
+    pid=$(sx_q structs address "$addr" | jq -r '.playerId // empty')
+    if [ -n "$pid" ] && [ "$pid" != "1-0" ]; then
+        primary=$(sx_q structs player "$pid" | jq -r '.Player.primaryAddress // empty')
+        if [ "$primary" = "$addr" ]; then echo "Primary wallet of player $pid"; else echo "a registered address of player $pid"; fi
+        return
+    fi
+    if sx_q auth account "$addr" >/dev/null; then
+        echo "not a player address (an external account or a vault)"
+    else
+        echo "new address — never used on chain; double-check it, sends can't be undone"
+    fi
 }
 
 # sx_wallet_send <recipient> <amount> [from-selector]
@@ -347,7 +373,13 @@ sx_wallet_send() {
 
     echo ""
     echo -e "${CYAN} SEND $(sx_fmt "$want" "$denom")${NC} to ${BOLD}$to${NC}"
-    sx_is_player_id "$to_raw" && echo -e "   ${DIM}(Player Vault of $to_raw)${NC}"
+    if sx_is_player_id "$to_raw"; then
+        echo -e "   ${DIM}(Player Vault of $to_raw)${NC}"
+    elif sx_is_guild_id "$to_raw"; then
+        echo -e "   ${DIM}(Guild Vault of $to_raw)${NC}"
+    elif [ -z "$(echo "$SX_WALLET" | jq -r --arg a "$to" '.sources[] | select(.address == $a) | .kind')" ]; then
+        echo -e "   ${DIM}($(sx_w_describe_recipient "$to"))${NC}"
+    fi
     local own
     own=$(echo "$SX_WALLET" | jq -r --arg a "$to" '.sources[] | select(.address == $a) | .kind')
     [ -n "$own" ] && echo -e "   ${DIM}(this is your own $(sx_w_label "$to") — an internal move)${NC}"

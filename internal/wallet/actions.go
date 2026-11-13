@@ -60,33 +60,61 @@ func (b *Builder) only(sel string) (string, error) {
 	return s.Address, nil
 }
 
-// ResolveRecipient accepts an address or a player id (-> that player's vault).
-func ResolveRecipient(ctx context.Context, c *chain.Client, to string) (addr, note string, err error) {
+// Recipient is a resolved send destination.
+type Recipient struct {
+	Address string
+	Label   string // "Player Vault of 1-186", "wallet of player 1-186", "external address"
+	Notes   []string
+}
+
+// ResolveRecipient accepts any structs1… account address (players or not),
+// a player id (-> that player's vault) or a guild id (-> the guild vault).
+func ResolveRecipient(ctx context.Context, c *chain.Client, to string) (Recipient, error) {
+	to = strings.TrimSpace(to)
 	switch {
-	case chain.IsAddress(to):
-		return to, "", nil
 	case chain.IsPlayerID(to):
 		v, err := c.Vault(ctx, to)
 		if err != nil || v == "" {
-			return "", "", fmt.Errorf("player %s has no vault", to)
+			return Recipient{}, fmt.Errorf("player %s has no vault", to)
 		}
-		return v, "Player Vault of " + to, nil
+		return Recipient{Address: v, Label: "Player Vault of " + to,
+			Notes: []string{"To pay one of their addresses instead, give the structs1… address."}}, nil
 	case chain.IsGuildID(to):
 		v, err := c.Vault(ctx, to)
 		if err != nil || v == "" {
-			return "", "", fmt.Errorf("guild %s has no vault", to)
+			return Recipient{}, fmt.Errorf("guild %s has no vault", to)
 		}
-		return v, "Guild Vault of " + to, nil
+		return Recipient{Address: v, Label: "Guild Vault of " + to}, nil
+	case strings.HasPrefix(strings.ToLower(to), "structs"):
+		if err := chain.ValidateAccountAddress(to); err != nil {
+			return Recipient{}, err
+		}
+		addr := strings.ToLower(to)
+		r := Recipient{Address: addr}
+		if pid, _ := c.PlayerOfAddress(ctx, addr); pid != "" {
+			r.Label = "a registered address of player " + pid
+			if p, err := c.Player(ctx, pid); err == nil && p.Player.PrimaryAddress == addr {
+				r.Label = "Primary wallet of player " + pid
+			}
+			return r, nil
+		}
+		r.Label = "not a player address (an external account or a vault)"
+		if !c.AccountExists(ctx, addr) {
+			r.Label = "new address — never used on chain"
+			r.Notes = append(r.Notes, "This address has no history. That's normal for a fresh wallet; otherwise double-check it — sends can't be undone.")
+		}
+		return r, nil
 	}
-	return "", "", fmt.Errorf("recipient must be a structs1… address, player id (1-N) or guild id (0-N)")
+	return Recipient{}, fmt.Errorf("recipient must be a structs1… address, a player id (1-N) or a guild id (0-N)")
 }
 
 // Send spends from the whole account.
 func (b *Builder) Send(ctx context.Context, to, amount, fromSel string) (*Plan, error) {
-	addr, note, err := ResolveRecipient(ctx, b.C, to)
+	rcpt, err := ResolveRecipient(ctx, b.C, to)
 	if err != nil {
 		return nil, err
 	}
+	addr := rcpt.Address
 	amt, err := chain.ParseAmount(amount, chain.Alpha)
 	if err != nil {
 		return nil, err
@@ -101,9 +129,10 @@ func (b *Builder) Send(ctx context.Context, to, amount, fromSel string) (*Plan, 
 	}
 	p := &Plan{Title: "Send " + chain.Format(sumDraws(draws), amt.Denom)}
 	p.Subtitle = append(p.Subtitle, "to "+addr)
-	if note != "" {
-		p.Subtitle = append(p.Subtitle, note)
+	if own := b.A.Source(addr); own == nil && rcpt.Label != "" {
+		p.Subtitle = append(p.Subtitle, rcpt.Label)
 	}
+	p.Notes = append(p.Notes, rcpt.Notes...)
 	if s := b.A.Source(addr); s != nil {
 		p.Notes = append(p.Notes, "This is your own "+s.Label()+" — an internal move.")
 	}

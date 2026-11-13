@@ -28,7 +28,7 @@ var commands []command
 func init() {
 	commands = []command{
 		// wallet
-		{name: "send", args: "<to> <amount> [vault|primary|addr]", desc: "Send from your whole account (sources picked for you)", group: "Wallet", minArgs: 2, run: cmdSend},
+		{name: "send", args: "<address|player|guild> <amount> [from]", desc: "Send to any structs1… address, or a player/guild vault", group: "Wallet", minArgs: 2, run: cmdSend},
 		{name: "consolidate", args: "[vault|primary|addr] [alpha|all|denom]", desc: "Gather funds from every source into one address", group: "Wallet", run: cmdConsolidate},
 		{name: "wallet", args: "[player|address]", desc: "Show an account (yours, or anyone's read-only)", group: "Wallet", aliases: []string{"lookup", "whois"}, run: cmdWallet},
 		// stake

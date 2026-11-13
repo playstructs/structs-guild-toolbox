@@ -39,8 +39,9 @@ WALLET
                                      picked automatically (vault first); a send
                                      that needs several sources becomes one
                                      atomic multi-message transaction.
-                                     <to> is an address or a player id (sends
-                                     to that player's vault).
+                                     <to> is any structs1… address (player or
+                                     not), a player id (their vault) or a
+                                     guild id (the guild vault).
   delegate <validator> <amount>      Infuse alpha into a reactor from wherever
                                      it sits in the account.  Alias: infuse
   undelegate <validator> <amount>    Defuse, from whichever addresses hold the

@@ -766,7 +766,7 @@ func (m Model) viewHelp(w int) string {
 	}
 	b.WriteString("\n" + section("Amounts & names", w) + "\n")
 	b.WriteString(sDim.Render("  2.5alpha · 2500000ualpha · 10guild.0-3 · all") + "\n")
-	b.WriteString(sDim.Render("  recipients: structs1… address, player id 1-N (their vault), guild id 0-N (guild vault)") + "\n")
+	b.WriteString(sDim.Render("  recipients: any structs1… address (player or not), player id 1-N (their vault), guild id 0-N (guild vault)") + "\n")
 	b.WriteString(sDim.Render("  reactors:   3-N, owning player 1-N, guild 0-N, moniker or structsvaloper1…") + "\n")
 	b.WriteString("\n" + section("Keys", w) + "\n")
 	b.WriteString(sDim.Render("  tab / shift+tab  switch panels      ctrl+r  refresh       pgup/pgdn  scroll") + "\n")

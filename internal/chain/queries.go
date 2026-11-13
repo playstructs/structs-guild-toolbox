@@ -412,3 +412,9 @@ func (c *Client) AccountSequence(ctx context.Context, addr string) (string, erro
 	}
 	return firstNonEmpty(r.Account.Value.Sequence, r.Account.Sequence, "0"), nil
 }
+
+// AccountExists reports whether the address has ever been used on chain.
+func (c *Client) AccountExists(ctx context.Context, addr string) bool {
+	var r map[string]any
+	return c.Query(ctx, &r, "auth", "account", addr) == nil
+}
