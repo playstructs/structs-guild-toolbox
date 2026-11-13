@@ -284,6 +284,11 @@ func (m Model) emptyState(w int) string {
 	}
 	var b strings.Builder
 	b.WriteString("\n" + sBold.Render("  Welcome to Structs.") + "\n\n")
+	src := "structsd defaults"
+	if m.c.ConfigFile != "" {
+		src = tildePath(m.c.ConfigFile)
+	}
+	b.WriteString(sDim.Render("  Keys come from the "+m.c.KeyringLabel()+" (set in "+src+").") + "\n\n")
 	if m.signer == nil {
 		b.WriteString(sDim.Render("  Pick the key you play with:  ") + sAlpha.Render("/key <name>") + "\n")
 		b.WriteString(sDim.Render("  Or look anyone up:           ") + sAlpha.Render("/wallet 1-186") + "\n")

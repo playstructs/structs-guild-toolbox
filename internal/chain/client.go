@@ -25,9 +25,14 @@ type Client struct {
 	Flags   []string // passed to every command: --node, --home, --keyring-backend ...
 	TxFlags []string // passed to transactions only: --fees, --gas-prices ...
 
+	// Settings resolved from flags, then <home>/config/client.toml, then
+	// structsd's defaults — the same order structsd uses.
 	Home           string
 	Node           string // tcp://host:26657
-	KeyringBackend string
+	KeyringBackend string // os | file | test | ...
+	KeyringDir     string // "" = the home directory
+	DefaultKey     string // client.toml keyring-default-keyname
+	ConfigFile     string // the client.toml that was read ("" if none)
 
 	chainOnce sync.Once
 	chainID   string
@@ -47,11 +52,46 @@ func New(bin string, flags, txFlags []string) *Client {
 		h, _ := os.UserHomeDir()
 		c.Home = filepath.Join(h, ".structs")
 	}
-	cfg := readClientToml(filepath.Join(c.Home, "config", "client.toml"))
+	path := filepath.Join(c.Home, "config", "client.toml")
+	cfg := readClientToml(path)
+	if len(cfg) > 0 {
+		c.ConfigFile = path
+	}
 	c.Node = firstNonEmpty(flagValue(flags, "--node"), cfg["node"], "tcp://localhost:26657")
 	c.KeyringBackend = firstNonEmpty(flagValue(flags, "--keyring-backend"), cfg["keyring-backend"], "os")
+	c.KeyringDir = flagValue(flags, "--keyring-dir")
+	c.DefaultKey = cfg["keyring-default-keyname"]
 	c.chainID = firstNonEmpty(flagValue(flags, "--chain-id"), cfg["chain-id"])
 	return c
+}
+
+// keyringFlags pins every keyring-touching command (keys, tx) to the keyring
+// resolved above, so the app and structsd can never disagree about it.
+func (c *Client) keyringFlags() []string {
+	out := append([]string{}, c.Flags...)
+	if flagValue(c.Flags, "--home") == "" {
+		out = append(out, "--home", c.Home)
+	}
+	if flagValue(c.Flags, "--keyring-backend") == "" {
+		out = append(out, "--keyring-backend", c.KeyringBackend)
+	}
+	return out
+}
+
+// KeyringLabel describes where keys come from: "test keyring in ~/.structs".
+func (c *Client) KeyringLabel() string {
+	dir := c.KeyringDir
+	if dir == "" {
+		dir = c.Home
+	}
+	if h, err := os.UserHomeDir(); err == nil && strings.HasPrefix(dir, h) {
+		dir = "~" + strings.TrimPrefix(dir, h)
+	}
+	label := c.KeyringBackend + " keyring in " + dir
+	if c.KeyringBackend == "os" {
+		label = "OS keychain (structs)" // the os backend lives in the system keychain
+	}
+	return label
 }
 
 func flagValue(flags []string, name string) string {
@@ -303,7 +343,7 @@ type Key struct {
 }
 
 func (c *Client) Keys(ctx context.Context) ([]Key, error) {
-	b, err := c.run(ctx, "", append([]string{"keys", "list", "--output", "json"}, c.Flags...)...)
+	b, err := c.run(ctx, "", append([]string{"keys", "list", "--output", "json"}, c.keyringFlags()...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +355,7 @@ func (c *Client) Keys(ctx context.Context) ([]Key, error) {
 }
 
 func (c *Client) Key(ctx context.Context, name string) (Key, error) {
-	b, err := c.run(ctx, "", append([]string{"keys", "show", name, "--output", "json"}, c.Flags...)...)
+	b, err := c.run(ctx, "", append([]string{"keys", "show", name, "--output", "json"}, c.keyringFlags()...)...)
 	if err != nil {
 		return Key{}, err
 	}

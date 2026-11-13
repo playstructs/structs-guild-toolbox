@@ -29,7 +29,12 @@ make build            # → bin/structs
 ./bin/structs reactor # just the reactor, animated
 ```
 
-It uses `structsd`'s settings. Override them with `--node`, `--home`, `--keyring-backend`, `--chain-id` and `--fees`, or with the `STRUCTSD_FLAGS` / `STRUCTSD_TX_FLAGS` environment variables. Add `--dry-run` to simulate everything without signing.
+It reads `~/.structs/config/client.toml`, or `<--home>/config/client.toml`, the same file `structsd` uses:
+- `keyring-backend` picks the keyring.
+- `keyring-default-keyname` is the default signing key.
+- `node` and `chain-id` pick the chain.
+
+The signing key is chosen in this order: `--key`, then `keyring-default-keyname`, then the key you last picked with `/key`, then the only key in the keyring that belongs to a player. Override any setting with `--node`, `--home`, `--keyring-backend`, `--chain-id` and `--fees`, or with the `STRUCTSD_FLAGS` / `STRUCTSD_TX_FLAGS` environment variables. Add `--dry-run` to simulate everything without signing.
 
 ## One account, many addresses
 

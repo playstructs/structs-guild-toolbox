@@ -56,7 +56,7 @@ func (c *Client) Prepare(ctx context.Context, s Signer, msgs []Msg) (*Prepared, 
 			defer wg.Done()
 			args := append([]string{"tx"}, m...)
 			args = append(args, "--from", s.Name, "--generate-only", "--chain-id", chainID)
-			args = append(args, c.Flags...)
+			args = append(args, c.keyringFlags()...)
 			args = append(args, c.TxFlags...)
 			out, err := c.run(ctx, "", args...)
 			if err != nil {
@@ -175,7 +175,7 @@ func (c *Client) SignAndBroadcast(ctx context.Context, s Signer, p *Prepared, pa
 	if c.KeyringBackend == "file" {
 		stdin = passphrase + "\n"
 	}
-	args := append([]string{"tx", "sign", unsigned, "--from", s.Name, "--chain-id", chainID, "--output-document", signed}, c.Flags...)
+	args := append([]string{"tx", "sign", unsigned, "--from", s.Name, "--chain-id", chainID, "--output-document", signed}, c.keyringFlags()...)
 	if _, err := c.run(ctx, stdin, args...); err != nil {
 		return "", fmt.Errorf("signing: %w", err)
 	}

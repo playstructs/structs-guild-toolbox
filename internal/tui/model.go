@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -80,6 +81,7 @@ type Model struct {
 	cancel context.CancelFunc
 
 	keys         []chain.Key
+	keyPlayers   map[string]string
 	localKeys    map[string]bool
 	signer       *chain.Signer
 	signerPlayer string
@@ -162,6 +164,8 @@ type bootMsg struct {
 	unbond       string
 	err          error
 	note         string
+	keyPlayers   map[string]string // key address -> player id ("" = unregistered)
+	keySource    string
 }
 type acctMsg struct {
 	acct *wallet.Account
@@ -253,40 +257,74 @@ func (m Model) boot() tea.Cmd {
 		var out bootMsg
 		keys, err := m.c.Keys(ctx)
 		if err != nil {
-			out.note = "Could not read the structsd keyring: " + err.Error()
+			out.note = "Could not read the " + m.c.KeyringLabel() + ": " + err.Error()
 		}
 		out.keys = keys
-		name := m.opts.KeyName
-		if name == "" {
-			name = loadConfig().AccountName
+
+		// Which player does each local key belong to? (also drives /key)
+		out.keyPlayers = map[string]string{}
+		var mu sync.Mutex
+		var wg sync.WaitGroup
+		for _, k := range keys {
+			wg.Add(1)
+			go func(k chain.Key) {
+				defer wg.Done()
+				p, _ := m.c.PlayerOfAddress(ctx, k.Address)
+				mu.Lock()
+				out.keyPlayers[k.Address] = p
+				mu.Unlock()
+			}(k)
+		}
+		wg.Wait()
+		inKeyring := func(name string) bool {
+			for _, k := range keys {
+				if k.Name == name || k.Address == name {
+					return true
+				}
+			}
+			return false
+		}
+
+		// Signing key, most explicit first:
+		//   --key / STRUCTS_ACCOUNT
+		//   client.toml keyring-default-keyname (structsd's own default --from)
+		//   the key last chosen with /key, if it is in this keyring
+		//   the only key in the keyring that belongs to a player
+		name, source := m.opts.KeyName, "--key"
+		if name == "" && m.c.DefaultKey != "" {
+			name, source = m.c.DefaultKey, "client.toml keyring-default-keyname"
+		}
+		if saved := loadConfig().AccountName; name == "" && saved != "" && inKeyring(saved) {
+			name, source = saved, "last used"
 		}
 		if name == "" {
-			// pick the only key that belongs to a player
 			var cands []chain.Key
 			for _, k := range keys {
-				if p, _ := m.c.PlayerOfAddress(ctx, k.Address); p != "" {
+				if out.keyPlayers[k.Address] != "" {
 					cands = append(cands, k)
 				}
 			}
 			if len(cands) == 1 {
-				name = cands[0].Name
+				name, source = cands[0].Name, "only player key in the keyring"
 			}
 		}
-		if name != "" {
+		out.keySource = source
+		switch {
+		case name != "" && !inKeyring(name):
+			out.note = fmt.Sprintf("Key %q (from %s) is not in the %s. Pick one with /key.", name, source, m.c.KeyringLabel())
+		case name != "":
 			for _, k := range keys {
 				if k.Name == name || k.Address == name {
 					out.signer = &chain.Signer{Name: k.Name, Address: k.Address, PubKey: k.PubKey}
 				}
 			}
-			if out.signer == nil {
-				out.note = fmt.Sprintf("Key %q is not in the keyring. Pick one with /key.", name)
-			} else {
-				out.signerPlayer, _ = m.c.PlayerOfAddress(ctx, out.signer.Address)
-				if out.signerPlayer == "" {
-					out.note = fmt.Sprintf("Key %s is not registered to a player yet.", out.signer.Name)
-				}
+			out.signerPlayer = out.keyPlayers[out.signer.Address]
+			if out.signerPlayer == "" {
+				out.note = fmt.Sprintf("Key %s is not registered to a player yet.", out.signer.Name)
 			}
-		} else if len(keys) > 0 {
+		case len(keys) == 0:
+			out.note = "No keys in the " + m.c.KeyringLabel() + ". Add one with: structsd keys add <name> --recover"
+		default:
 			out.note = "No signing key selected. Choose one with /key."
 		}
 		out.vals, out.err = m.c.Validators(ctx)
@@ -425,8 +463,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.addLog("info", msg.note, "")
 			m.setFlash(msg.note, false)
 		}
+		m.keyPlayers = msg.keyPlayers
+		src := "structsd defaults (no client.toml)"
+		if m.c.ConfigFile != "" {
+			src = tildePath(m.c.ConfigFile)
+		}
+		m.addLog("info", fmt.Sprintf("Keyring: %s · node %s · from %s", m.c.KeyringLabel(), m.c.Node, src), "")
 		if m.signer != nil {
-			m.addLog("info", fmt.Sprintf("Signing as %s (%s)", m.signer.Name, wallet.Short(m.signer.Address)), "")
+			m.addLog("info", fmt.Sprintf("Signing as %s (%s) — %s", m.signer.Name, wallet.Short(m.signer.Address), msg.keySource), "")
 		}
 		target := m.opts.View
 		if target == "" {
@@ -730,4 +774,11 @@ func (m *Model) refresh() tea.Cmd {
 func (m *Model) startPlan(what string, f func(ctx context.Context) (*wallet.Plan, error)) tea.Cmd {
 	m.pending = &pendingTx{stage: stagePlanning, what: what}
 	return m.planCmd(what, f)
+}
+
+func tildePath(p string) string {
+	if h, err := os.UserHomeDir(); err == nil && strings.HasPrefix(p, h) {
+		return "~" + strings.TrimPrefix(p, h)
+	}
+	return p
 }

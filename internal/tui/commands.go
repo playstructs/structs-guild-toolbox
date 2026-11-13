@@ -339,25 +339,37 @@ func cmdKey(m *Model, a []string) (tea.Cmd, error) {
 	if name == "" {
 		m.tab = tabActivity
 		if len(m.keys) == 0 {
-			return nil, fmt.Errorf("no keys in the structsd keyring")
+			return nil, fmt.Errorf("no keys in the %s — add one with: structsd keys add <name> --recover", m.c.KeyringLabel())
 		}
-		var names []string
+		var parts []string
 		for _, k := range m.keys {
-			names = append(names, k.Name)
+			p := m.keyPlayers[k.Address]
+			if p == "" {
+				p = "not a player"
+			}
+			mark := ""
+			if m.signer != nil && m.signer.Address == k.Address {
+				mark = "★ "
+			}
+			parts = append(parts, fmt.Sprintf("%s%s (%s)", mark, k.Name, p))
 		}
-		m.addLog("info", "Keys in your keyring: "+strings.Join(names, ", ")+" — choose with /key <name>", "")
+		m.addLog("info", "Keys in the "+m.c.KeyringLabel()+": "+strings.Join(parts, ", ")+" — choose with /key <name>", "")
 		return nil, nil
 	}
 	for _, k := range m.keys {
 		if k.Name == name || k.Address == name {
+			// Remember for next time, and use it now (it outranks client.toml's default this session).
 			m.opts.KeyName = k.Name
-			saveConfig(savedConfig{AccountName: k.Name, AccountAddress: k.Address})
+			saveConfig(savedConfig{AccountName: k.Name, AccountAddress: k.Address, PlayerID: m.keyPlayers[k.Address]})
 			m.addLog("info", "Switched signing key to "+k.Name, "")
+			if d := m.c.DefaultKey; d != "" && d != k.Name {
+				m.addLog("info", fmt.Sprintf("client.toml's keyring-default-keyname is %q, which is used at start-up. To make %s the default: structsd config set client keyring-default-keyname %s", d, k.Name, k.Name), "")
+			}
 			m.acct, m.guild, m.members = nil, nil, nil
 			m.opts.View = ""
 			m.loading["boot"] = true
 			return m.boot(), nil
 		}
 	}
-	return nil, fmt.Errorf("no key named %q (see /key)", name)
+	return nil, fmt.Errorf("no key named %q in the %s (see /key)", name, m.c.KeyringLabel())
 }
