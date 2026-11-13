@@ -34,6 +34,9 @@ type Client struct {
 	DefaultKey     string // client.toml keyring-default-keyname
 	ConfigFile     string // the client.toml that was read ("" if none)
 
+	passMu     sync.RWMutex
+	passphrase string // keyring passphrase, held in memory only
+
 	chainOnce sync.Once
 	chainID   string
 	chainErr  error
@@ -191,18 +194,25 @@ func Humanize(msg string) string {
 }
 
 func (c *Client) run(ctx context.Context, stdin string, args ...string) ([]byte, error) {
+	out, _, err := c.runCapture(ctx, stdin, args...)
+	return out, err
+}
+
+// runCapture also returns stderr on success: structsd reports a locked
+// keyring there while still exiting 0 with an empty key list.
+func (c *Client) runCapture(ctx context.Context, stdin string, args ...string) ([]byte, []byte, error) {
 	select {
 	case c.sem <- struct{}{}:
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, nil, ctx.Err()
 	}
 	defer func() { <-c.sem }()
 	cmd := exec.CommandContext(ctx, c.Bin, args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
-	if stdin != "" {
-		cmd.Stdin = strings.NewReader(stdin)
-	}
+	// Always give structsd a stdin: without one, a keyring passphrase prompt
+	// reads EOF and the keyring silently looks empty.
+	cmd.Stdin = strings.NewReader(stdin)
 	err := cmd.Run()
 	if err != nil {
 		// structsd sometimes reports errors on stdout
@@ -210,9 +220,9 @@ func (c *Client) run(ctx context.Context, stdin string, args ...string) ([]byte,
 		if strings.TrimSpace(se) == "" {
 			se = stdout.String()
 		}
-		return stdout.Bytes(), &CommandError{Args: args, Stderr: se, Err: err}
+		return stdout.Bytes(), stderr.Bytes(), &CommandError{Args: args, Stderr: se, Err: err}
 	}
-	return stdout.Bytes(), nil
+	return stdout.Bytes(), stderr.Bytes(), nil
 }
 
 // lastJSON returns the last top-level JSON object in the output (structsd
@@ -331,37 +341,6 @@ func (c *Client) Status(ctx context.Context) (NodeStatus, error) {
 	var h int64
 	fmt.Sscanf(r.Result.SyncInfo.Height, "%d", &h)
 	return NodeStatus{Network: r.Result.NodeInfo.Network, Height: h, Time: r.Result.SyncInfo.Time, CatchingUp: r.Result.SyncInfo.CatchingUp}, nil
-}
-
-// ---- keys ----
-
-type Key struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Address string `json:"address"`
-	PubKey  string `json:"pubkey"` // JSON: {"@type": "...", "key": "..."}
-}
-
-func (c *Client) Keys(ctx context.Context) ([]Key, error) {
-	b, err := c.run(ctx, "", append([]string{"keys", "list", "--output", "json"}, c.keyringFlags()...)...)
-	if err != nil {
-		return nil, err
-	}
-	var keys []Key
-	if err := json.Unmarshal(lastJSONArray(b), &keys); err != nil {
-		return nil, err
-	}
-	return keys, nil
-}
-
-func (c *Client) Key(ctx context.Context, name string) (Key, error) {
-	b, err := c.run(ctx, "", append([]string{"keys", "show", name, "--output", "json"}, c.keyringFlags()...)...)
-	if err != nil {
-		return Key{}, err
-	}
-	var k Key
-	err = json.Unmarshal(lastJSON(b), &k)
-	return k, err
 }
 
 func lastJSONArray(b []byte) []byte {

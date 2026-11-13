@@ -48,6 +48,7 @@ func init() {
 		{name: "withdraw", args: "<provider> [dest]", desc: "Withdraw provider earnings (default: your vault)", group: "Guild", minArgs: 1, run: cmdWithdraw},
 		// general
 		{name: "key", args: "[name]", desc: "Choose the key you sign with", group: "General", run: cmdKey},
+		{name: "unlock", desc: "Enter your keyring passphrase", group: "General", run: cmdUnlock},
 		{name: "refresh", desc: "Reload everything", group: "General", run: func(m *Model, _ []string) (tea.Cmd, error) { return m.refresh(), nil }},
 		{name: "help", desc: "Commands and shortcuts", group: "General", run: func(m *Model, _ []string) (tea.Cmd, error) { m.showHelp = true; return nil, nil }},
 		{name: "quit", desc: "Exit", group: "General", aliases: []string{"exit", "q"}, run: func(m *Model, _ []string) (tea.Cmd, error) { m.cancel(); return tea.Quit, nil }},
@@ -372,4 +373,15 @@ func cmdKey(m *Model, a []string) (tea.Cmd, error) {
 		}
 	}
 	return nil, fmt.Errorf("no key named %q in the %s (see /key)", name, m.c.KeyringLabel())
+}
+
+func cmdUnlock(m *Model, _ []string) (tea.Cmd, error) {
+	if m.keyring.Hint == "" {
+		m.keyring.Hint = "Enter the passphrase for the " + m.c.KeyringLabel() + "."
+	}
+	m.unlocking = true
+	m.pass.SetValue("")
+	m.pass.Focus()
+	m.input.Blur()
+	return nil, nil
 }

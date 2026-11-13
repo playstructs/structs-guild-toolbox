@@ -58,7 +58,7 @@ func (c *Client) Prepare(ctx context.Context, s Signer, msgs []Msg) (*Prepared, 
 			args = append(args, "--from", s.Name, "--generate-only", "--chain-id", chainID)
 			args = append(args, c.keyringFlags()...)
 			args = append(args, c.TxFlags...)
-			out, err := c.run(ctx, "", args...)
+			out, err := c.run(ctx, c.keyStdin(), args...)
 			if err != nil {
 				errs[i] = fmt.Errorf("step %d (%s): %w", i+1, m[1], err)
 				return
@@ -156,8 +156,9 @@ type TxResult struct {
 func (r TxResult) OK() bool { return r.Code == 0 }
 
 // SignAndBroadcast signs a prepared transaction with the signer's key and
-// broadcasts it. passphrase is only used for the "file" keyring backend.
-func (c *Client) SignAndBroadcast(ctx context.Context, s Signer, p *Prepared, passphrase string) (string, error) {
+// broadcasts it. The keyring passphrase, if one is needed, comes from
+// SetPassphrase (see keyring.go).
+func (c *Client) SignAndBroadcast(ctx context.Context, s Signer, p *Prepared) (string, error) {
 	chainID, err := c.ChainID(ctx)
 	if err != nil {
 		return "", err
@@ -171,12 +172,8 @@ func (c *Client) SignAndBroadcast(ctx context.Context, s Signer, p *Prepared, pa
 	if err := writeJSON(unsigned, p.Unsigned); err != nil {
 		return "", err
 	}
-	stdin := ""
-	if c.KeyringBackend == "file" {
-		stdin = passphrase + "\n"
-	}
 	args := append([]string{"tx", "sign", unsigned, "--from", s.Name, "--chain-id", chainID, "--output-document", signed}, c.keyringFlags()...)
-	if _, err := c.run(ctx, stdin, args...); err != nil {
+	if _, err := c.run(ctx, c.keyStdin(), args...); err != nil {
 		return "", fmt.Errorf("signing: %w", err)
 	}
 	out, err := c.run(ctx, "", append([]string{"tx", "broadcast", signed, "--output", "json"}, c.Flags...)...)

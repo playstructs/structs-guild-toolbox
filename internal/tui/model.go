@@ -82,6 +82,8 @@ type Model struct {
 
 	keys         []chain.Key
 	keyPlayers   map[string]string
+	keyring      chain.KeyringStatus
+	unlocking    bool // the passphrase prompt is showing
 	localKeys    map[string]bool
 	signer       *chain.Signer
 	signerPlayer string
@@ -166,6 +168,7 @@ type bootMsg struct {
 	note         string
 	keyPlayers   map[string]string // key address -> player id ("" = unregistered)
 	keySource    string
+	keyring      chain.KeyringStatus
 }
 type acctMsg struct {
 	acct *wallet.Account
@@ -255,11 +258,16 @@ func (m Model) boot() tea.Cmd {
 		ctx, cancel := context.WithTimeout(m.ctx, 60*time.Second)
 		defer cancel()
 		var out bootMsg
-		keys, err := m.c.Keys(ctx)
-		if err != nil {
-			out.note = "Could not read the " + m.c.KeyringLabel() + ": " + err.Error()
-		}
+		ks := m.c.ListKeys(ctx)
+		out.keyring = ks
+		keys := ks.Keys
 		out.keys = keys
+		if ks.State != chain.KeyringOK && len(keys) == 0 {
+			// Locked: stop here and ask for the passphrase; nothing else needs keys.
+			out.vals, out.err = m.c.Validators(ctx)
+			out.unbond = m.c.UnbondingTime(ctx)
+			return out
+		}
 
 		// Which player does each local key belong to? (also drives /key)
 		out.keyPlayers = map[string]string{}
@@ -372,7 +380,7 @@ func (m Model) prepareCmd(p *wallet.Plan) tea.Cmd {
 	}
 }
 
-func (m Model) broadcastCmd(prep *chain.Prepared, pass string) tea.Cmd {
+func (m Model) broadcastCmd(prep *chain.Prepared) tea.Cmd {
 	s := *m.signer
 	if m.opts.DryRun {
 		return func() tea.Msg {
@@ -382,7 +390,7 @@ func (m Model) broadcastCmd(prep *chain.Prepared, pass string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(m.ctx, 90*time.Second)
 		defer cancel()
-		h, err := m.c.SignAndBroadcast(ctx, s, prep, pass)
+		h, err := m.c.SignAndBroadcast(ctx, s, prep)
 		return broadcastMsg{h, err}
 	}
 }
@@ -450,7 +458,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case bootMsg:
 		m.loading["boot"] = false
+		m.keyring = msg.keyring
 		m.keys = msg.keys
+		switch msg.keyring.State {
+		case chain.KeyringLocked, chain.KeyringWrongPass:
+			m.unlocking = true
+			m.pass.SetValue("")
+			m.pass.Focus()
+			m.input.Blur()
+			if msg.keyring.State == chain.KeyringWrongPass {
+				m.setFlash("Wrong passphrase — try again (esc to skip)", false)
+			} else {
+				m.setFlash("", false)
+			}
+			m.vals, m.unbond = msg.vals, msg.unbond
+			return m, textinput.Blink
+		case chain.KeyringOSLocked, chain.KeyringError:
+			m.addLog("err", "Keyring: "+msg.keyring.Hint+" ("+msg.keyring.Detail+")", "")
+			m.setFlash("Can't open the keyring — see the Wallet tab", false)
+		}
 		for _, k := range msg.keys {
 			m.localKeys[k.Address] = true
 		}
@@ -605,6 +631,29 @@ func (m Model) handleKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
+	// keyring unlock prompt
+	if m.unlocking {
+		switch k.String() {
+		case "esc":
+			m.unlocking = false
+			m.pass.Blur()
+			m.input.Focus()
+			m.addLog("info", "Keyring left locked — you can still look players up. /unlock to try again.", "")
+			return m, nil
+		case "enter":
+			m.c.SetPassphrase(m.pass.Value())
+			m.pass.SetValue("")
+			m.unlocking = false
+			m.pass.Blur()
+			m.input.Focus()
+			m.loading["boot"] = true
+			return m, m.boot()
+		}
+		var cmd tea.Cmd
+		m.pass, cmd = m.pass.Update(k)
+		return m, cmd
+	}
+
 	// passphrase entry
 	if m.pending != nil && m.pending.stage == stagePassphrase {
 		switch k.String() {
@@ -613,10 +662,10 @@ func (m Model) handleKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.input.Focus()
 			return m, nil
 		case "enter":
-			p := m.pass.Value()
+			m.c.SetPassphrase(m.pass.Value())
 			m.pass.SetValue("")
 			m.pending.stage = stageSigning
-			return m, m.broadcastCmd(m.pending.prep, p)
+			return m, m.broadcastCmd(m.pending.prep)
 		}
 		var cmd tea.Cmd
 		m.pass, cmd = m.pass.Update(k)
@@ -629,13 +678,13 @@ func (m Model) handleKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case stageReady:
 			switch k.String() {
 			case "enter", "y":
-				if m.c.KeyringBackend == "file" {
+				if m.c.KeyringBackend == "file" && !m.c.HasPassphrase() {
 					m.pending.stage = stagePassphrase
 					m.pass.Focus()
 					return m, textinput.Blink
 				}
 				m.pending.stage = stageSigning
-				return m, m.broadcastCmd(m.pending.prep, "")
+				return m, m.broadcastCmd(m.pending.prep)
 			case "esc", "n":
 				m.addLog("info", "Cancelled: "+m.pending.plan.Title, "")
 				m.pending = nil
@@ -759,6 +808,10 @@ func (m Model) handleKey(k tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m *Model) refresh() tea.Cmd {
 	var cmds []tea.Cmd
+	if m.signer == nil {
+		m.loading["boot"] = true
+		return m.boot()
+	}
 	if m.viewing != "" {
 		m.loading["acct"] = true
 		cmds = append(cmds, m.loadAccount(m.viewing))

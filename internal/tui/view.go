@@ -95,7 +95,10 @@ func (m Model) viewHeader() string {
 func (m Model) busyLabel() string {
 	switch {
 	case m.loading["boot"]:
-		return "connecting"
+		if m.c.KeyringBackend == "os" {
+			return "opening keyring — approve any keychain prompt"
+		}
+		return "opening keyring"
 	case m.loading["acct"]:
 		return "loading account"
 	case m.loading["guild"]:
@@ -125,8 +128,9 @@ func (m Model) viewFooter() string {
 		box = sPromptActive
 	}
 	inner := m.input.View()
-	if m.pending != nil && m.pending.stage == stagePassphrase {
+	if m.unlocking || (m.pending != nil && m.pending.stage == stagePassphrase) {
 		inner = m.pass.View()
+		box = sPromptActive.BorderForeground(cHazard)
 	}
 	parts = append(parts, box.Width(m.width-2).Render(inner))
 
@@ -213,6 +217,8 @@ func (m Model) viewBody(h int) string {
 	switch {
 	case m.showHelp:
 		content = m.viewHelp(rw)
+	case m.unlocking:
+		content = m.viewUnlock(rw)
 	case m.pending != nil:
 		content = m.viewPlan(rw)
 	default:
@@ -289,6 +295,21 @@ func (m Model) emptyState(w int) string {
 		src = tildePath(m.c.ConfigFile)
 	}
 	b.WriteString(sDim.Render("  Keys come from the "+m.c.KeyringLabel()+" (set in "+src+").") + "\n\n")
+	if ks := m.keyring; ks.State == chain.KeyringOSLocked || ks.State == chain.KeyringError {
+		b.WriteString(sErr.Render("  ✗ The keyring could not be opened.") + "\n")
+		for _, l := range strings.Split(ks.Hint, "\n") {
+			b.WriteString(sText.Render("  "+l) + "\n")
+		}
+		if ks.Detail != "" {
+			b.WriteString(sFaint.Render("  structsd: "+ks.Detail) + "\n")
+		}
+		b.WriteString("\n" + sDim.Render("  Then press ") + sKey.Render("ctrl+r") + sDim.Render(". You can still look anyone up: ") + sAlpha.Render("/wallet 1-186") + "\n")
+		return b.String()
+	}
+	if ks := m.keyring; ks.State == chain.KeyringLocked || ks.State == chain.KeyringWrongPass {
+		b.WriteString(sWarn.Render("  🔒 The keyring is locked.") + sDim.Render("  ") + sAlpha.Render("/unlock") + sDim.Render(" to enter its passphrase.") + "\n")
+		return b.String()
+	}
 	if m.signer == nil {
 		b.WriteString(sDim.Render("  Pick the key you play with:  ") + sAlpha.Render("/key <name>") + "\n")
 		b.WriteString(sDim.Render("  Or look anyone up:           ") + sAlpha.Render("/wallet 1-186") + "\n")
@@ -751,4 +772,15 @@ func (m Model) viewHelp(w int) string {
 	b.WriteString(sDim.Render("  tab / shift+tab  switch panels      ctrl+r  refresh       pgup/pgdn  scroll") + "\n")
 	b.WriteString(sDim.Render("  ↑ ↓              history / menu     esc     back / clear  ctrl+c     quit") + "\n")
 	return b.String()
+}
+
+func (m Model) viewUnlock(w int) string {
+	var b strings.Builder
+	b.WriteString(sHazard.Render("🔒 Unlock your keyring") + "\n\n")
+	b.WriteString(sText.Render(m.keyring.Hint) + "\n")
+	b.WriteString(sDim.Render("Keys: "+m.c.KeyringLabel()) + "\n\n")
+	b.WriteString(sDim.Render("The passphrase is kept in memory for this session only and passed to structsd") + "\n")
+	b.WriteString(sDim.Render("when it opens the keyring. It is never written to disk.") + "\n\n")
+	b.WriteString(sKey.Render("⏎") + sDim.Render(" unlock    ") + sKey.Render("esc") + sDim.Render(" skip (look-ups still work)"))
+	return "\n" + sCard.BorderForeground(cHazard).Width(min(w-2, 84)).Render(b.String())
 }

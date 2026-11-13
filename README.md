@@ -36,6 +36,14 @@ It reads `~/.structs/config/client.toml`, or `<--home>/config/client.toml`, the 
 
 The signing key is chosen in this order: `--key`, then `keyring-default-keyname`, then the key you last picked with `/key`, then the only key in the keyring that belongs to a player. Override any setting with `--node`, `--home`, `--keyring-backend`, `--chain-id` and `--fees`, or with the `STRUCTSD_FLAGS` / `STRUCTSD_TX_FLAGS` environment variables. Add `--dry-run` to simulate everything without signing.
 
+### Locked keyrings
+
+Some keyrings need unlocking before `structs` can see your keys:
+
+- **`file` keyring, or `os` on a Linux server with no desktop keyring.** The SDK's `os` backend falls back to an encrypted file keyring when it can't find one. `structs` notices the keyring is locked and asks for its passphrase. It keeps the passphrase in memory for the session and never writes it to disk. Type `/unlock` to enter it again.
+- **macOS Keychain (`os`).** On the Mac itself, approve the Keychain dialog with "Always Allow". Over SSH the keychain is locked: run `security unlock-keychain ~/Library/Keychains/login.keychain-db`, then press ctrl+r.
+- **Linux Secret Service or KWallet (`os`).** Unlock it in your desktop session, or switch to `keyring-backend = "file"` on a headless machine.
+
 ## One account, many addresses
 
 A Structs player account is your **Player Vault** plus **every address registered to your player**, and any of your keys can spend from all of them. `structs` adds them up, shows where everything sits, and picks the sources for you.
